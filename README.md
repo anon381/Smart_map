@@ -111,10 +111,8 @@ The system retrieves data from:
 * Internal database (verified user data)
 * External services such as:
 
-  * Google Maps
-  * Gebeta Maps
-
----
+osm
+overpass 
 
 ### Step 4: Data Fusion & Ranking
 
