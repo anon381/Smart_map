@@ -9,21 +9,31 @@
     "file": "assets/styles-unp3fu9A.css",
     "src": "/home/anon/Documents/Smart_map/frontend/src/styles.css"
   },
-  "_button-DpejGpb7.js": {
-    "file": "assets/button-DpejGpb7.js",
-    "name": "button",
+  "_auth-shell-Cgmagv_y.js": {
+    "file": "assets/auth-shell-Cgmagv_y.js",
+    "name": "auth-shell",
     "imports": [
-      "_worker-entry-DTsiW0lI.js"
+      "_button-DMUmqlHb.js",
+      "_worker-entry-CWYsvvuY.js",
+      "_router-_-K0eT4h.js"
     ]
   },
-  "_router-D927H5GD.js": {
-    "file": "assets/router-D927H5GD.js",
+  "_button-DMUmqlHb.js": {
+    "file": "assets/button-DMUmqlHb.js",
+    "name": "button",
+    "imports": [
+      "_worker-entry-CWYsvvuY.js"
+    ]
+  },
+  "_router-_-K0eT4h.js": {
+    "file": "assets/router-_-K0eT4h.js",
     "name": "router",
     "isDynamicEntry": true,
     "imports": [
-      "_worker-entry-DTsiW0lI.js"
+      "_worker-entry-CWYsvvuY.js"
     ],
     "dynamicImports": [
+      "src/routes/signup.tsx?tsr-split=component",
       "src/routes/signin.tsx?tsr-split=component",
       "src/routes/index.tsx?tsr-split=component"
     ],
@@ -31,12 +41,12 @@
       "assets/styles-unp3fu9A.css"
     ]
   },
-  "_worker-entry-DTsiW0lI.js": {
-    "file": "assets/worker-entry-DTsiW0lI.js",
+  "_worker-entry-CWYsvvuY.js": {
+    "file": "assets/worker-entry-CWYsvvuY.js",
     "name": "worker-entry",
     "dynamicImports": [
       "tanstack-start-manifest:v",
-      "_router-D927H5GD.js",
+      "_router-_-K0eT4h.js",
       "node_modules/@tanstack/react-start/dist/plugin/default-entry/start.ts",
       "%23tanstack-start-plugin-adapters"
     ]
@@ -52,32 +62,45 @@
     "isDynamicEntry": true
   },
   "src/routes/index.tsx?tsr-split=component": {
-    "file": "assets/index-B4pgjd4-.js",
+    "file": "assets/index-DXusqfNL.js",
     "name": "index",
     "src": "src/routes/index.tsx?tsr-split=component",
     "isDynamicEntry": true,
     "imports": [
-      "_worker-entry-DTsiW0lI.js",
-      "_router-D927H5GD.js",
-      "_button-DpejGpb7.js"
+      "_worker-entry-CWYsvvuY.js",
+      "_router-_-K0eT4h.js",
+      "_button-DMUmqlHb.js"
     ],
     "assets": [
       "assets/hero-B6Uzlj0z.mp4"
     ]
   },
   "src/routes/signin.tsx?tsr-split=component": {
-    "file": "assets/signin-Be70T99r.js",
+    "file": "assets/signin-BjnQbGXq.js",
     "name": "signin",
     "src": "src/routes/signin.tsx?tsr-split=component",
     "isDynamicEntry": true,
     "imports": [
-      "_worker-entry-DTsiW0lI.js",
-      "_router-D927H5GD.js",
-      "_button-DpejGpb7.js"
+      "_worker-entry-CWYsvvuY.js",
+      "_router-_-K0eT4h.js",
+      "_button-DMUmqlHb.js",
+      "_auth-shell-Cgmagv_y.js"
+    ]
+  },
+  "src/routes/signup.tsx?tsr-split=component": {
+    "file": "assets/signup-b8Olup6F.js",
+    "name": "signup",
+    "src": "src/routes/signup.tsx?tsr-split=component",
+    "isDynamicEntry": true,
+    "imports": [
+      "_worker-entry-CWYsvvuY.js",
+      "_router-_-K0eT4h.js",
+      "_button-DMUmqlHb.js",
+      "_auth-shell-Cgmagv_y.js"
     ]
   },
   "tanstack-start-manifest:v": {
-    "file": "assets/_tanstack-start-manifest_v-Ck3tHjmd.js",
+    "file": "assets/_tanstack-start-manifest_v-6pJrQVnv.js",
     "name": "_tanstack-start-manifest_v",
     "src": "tanstack-start-manifest:v",
     "isDynamicEntry": true
@@ -88,7 +111,7 @@
     "src": "virtual:cloudflare/worker-entry",
     "isEntry": true,
     "imports": [
-      "_worker-entry-DTsiW0lI.js"
+      "_worker-entry-CWYsvvuY.js"
     ]
   }
 }

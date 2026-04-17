@@ -4,7 +4,10 @@ import {
   createRootRoute,
   HeadContent,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
+import { AnimatePresence, motion } from "framer-motion";
+import * as React from "react";
 
 import appCss from "../styles.css?url";
 
@@ -73,5 +76,54 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return <Outlet />;
+  const authRoutes = new Set(["/signin", "/signup"]);
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+  const previousPathnameRef = React.useRef(pathname);
+  const previousPathname = previousPathnameRef.current;
+
+  React.useEffect(() => {
+    previousPathnameRef.current = pathname;
+  }, [pathname]);
+
+  const isAuthRoute = authRoutes.has(pathname);
+  const wasAuthRoute = authRoutes.has(previousPathname);
+  const shouldFlip =
+    isAuthRoute && wasAuthRoute && pathname !== previousPathname;
+  const direction =
+    previousPathname === "/signin" && pathname === "/signup"
+      ? 1
+      : previousPathname === "/signup" && pathname === "/signin"
+        ? -1
+        : 1;
+
+  return (
+    <div style={shouldFlip ? { perspective: "1400px" } : undefined}>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={pathname}
+          initial={
+            shouldFlip
+              ? { opacity: 0, rotateY: direction * 90, scale: 0.98 }
+              : { opacity: 0, y: 12 }
+          }
+          animate={
+            shouldFlip
+              ? { opacity: 1, rotateY: 0, scale: 1 }
+              : { opacity: 1, y: 0 }
+          }
+          exit={
+            shouldFlip
+              ? { opacity: 0, rotateY: direction * -90, scale: 0.98 }
+              : { opacity: 0, y: -12 }
+          }
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          style={{ transformStyle: "preserve-3d" }}
+        >
+          <Outlet />
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
 }

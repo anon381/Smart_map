@@ -1,6 +1,6 @@
-import { r as reactExports, T as jsxRuntimeExports } from "./worker-entry-DTsiW0lI.js";
-import { L as Link } from "./router-D927H5GD.js";
-import { f as frame, a as cancelFrame, i as interpolate, b as MotionConfigContext, d as isHTMLElement, u as useConstant, P as PresenceContext, e as usePresence, g as useIsomorphicLayoutEffect, L as LayoutGroupContext, s as supportsViewTimeline, h as supportsScrollTimeline, p as progress, v as velocityPerSecond, j as defaultOffset$1, k as clamp$1, n as noop, r as resize, l as frameData, o as invariant, q as motionValue, t as collectMotionValues, w as hasReducedMotionListener, x as initPrefersReducedMotion, y as prefersReducedMotion, c as createLucideIcon, M as Map$1, B as Button, m as motion, A as ArrowRight, z as cn } from "./button-DpejGpb7.js";
+import { r as reactExports, T as jsxRuntimeExports } from "./worker-entry-CWYsvvuY.js";
+import { f as frame, c as cancelFrame, i as interpolate, s as supportsViewTimeline, a as supportsScrollTimeline, p as progress, v as velocityPerSecond, b as isHTMLElement, d as defaultOffset$1, e as clamp$1, n as noop, r as resize, g as frameData, h as useConstant, j as useIsomorphicLayoutEffect, k as invariant, m as motionValue, M as MotionConfigContext, l as collectMotionValues, o as hasReducedMotionListener, q as initPrefersReducedMotion, t as prefersReducedMotion, L as Link, w as motion, A as AnimatePresence } from "./router-_-K0eT4h.js";
+import { c as createLucideIcon, M as Map$1, B as Button, A as ArrowRight, a as cn } from "./button-DMUmqlHb.js";
 import "node:events";
 import "node:async_hooks";
 import "node:stream/web";
@@ -29,234 +29,6 @@ function transform(...args) {
   const interpolator = interpolate(inputRange, outputRange, options);
   return useImmediate ? interpolator(inputValue) : interpolator;
 }
-function setRef(ref, value) {
-  if (typeof ref === "function") {
-    return ref(value);
-  } else if (ref !== null && ref !== void 0) {
-    ref.current = value;
-  }
-}
-function composeRefs(...refs) {
-  return (node) => {
-    let hasCleanup = false;
-    const cleanups = refs.map((ref) => {
-      const cleanup = setRef(ref, node);
-      if (!hasCleanup && typeof cleanup === "function") {
-        hasCleanup = true;
-      }
-      return cleanup;
-    });
-    if (hasCleanup) {
-      return () => {
-        for (let i = 0; i < cleanups.length; i++) {
-          const cleanup = cleanups[i];
-          if (typeof cleanup === "function") {
-            cleanup();
-          } else {
-            setRef(refs[i], null);
-          }
-        }
-      };
-    }
-  };
-}
-function useComposedRefs(...refs) {
-  return reactExports.useCallback(composeRefs(...refs), refs);
-}
-class PopChildMeasure extends reactExports.Component {
-  getSnapshotBeforeUpdate(prevProps) {
-    const element = this.props.childRef.current;
-    if (isHTMLElement(element) && prevProps.isPresent && !this.props.isPresent && this.props.pop !== false) {
-      const parent = element.offsetParent;
-      const parentWidth = isHTMLElement(parent) ? parent.offsetWidth || 0 : 0;
-      const parentHeight = isHTMLElement(parent) ? parent.offsetHeight || 0 : 0;
-      const computedStyle = getComputedStyle(element);
-      const size = this.props.sizeRef.current;
-      size.height = parseFloat(computedStyle.height);
-      size.width = parseFloat(computedStyle.width);
-      size.top = element.offsetTop;
-      size.left = element.offsetLeft;
-      size.right = parentWidth - size.width - size.left;
-      size.bottom = parentHeight - size.height - size.top;
-    }
-    return null;
-  }
-  /**
-   * Required with getSnapshotBeforeUpdate to stop React complaining.
-   */
-  componentDidUpdate() {
-  }
-  render() {
-    return this.props.children;
-  }
-}
-function PopChild({ children, isPresent, anchorX, anchorY, root, pop }) {
-  const id = reactExports.useId();
-  const ref = reactExports.useRef(null);
-  const size = reactExports.useRef({
-    width: 0,
-    height: 0,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0
-  });
-  const { nonce } = reactExports.useContext(MotionConfigContext);
-  const childRef = children.props?.ref ?? children?.ref;
-  const composedRef = useComposedRefs(ref, childRef);
-  reactExports.useInsertionEffect(() => {
-    const { width, height, top, left, right, bottom } = size.current;
-    if (isPresent || pop === false || !ref.current || !width || !height)
-      return;
-    const x = anchorX === "left" ? `left: ${left}` : `right: ${right}`;
-    const y = anchorY === "bottom" ? `bottom: ${bottom}` : `top: ${top}`;
-    ref.current.dataset.motionPopId = id;
-    const style = document.createElement("style");
-    if (nonce)
-      style.nonce = nonce;
-    const parent = root ?? document.head;
-    parent.appendChild(style);
-    if (style.sheet) {
-      style.sheet.insertRule(`
-          [data-motion-pop-id="${id}"] {
-            position: absolute !important;
-            width: ${width}px !important;
-            height: ${height}px !important;
-            ${x}px !important;
-            ${y}px !important;
-          }
-        `);
-    }
-    return () => {
-      ref.current?.removeAttribute("data-motion-pop-id");
-      if (parent.contains(style)) {
-        parent.removeChild(style);
-      }
-    };
-  }, [isPresent]);
-  return jsxRuntimeExports.jsx(PopChildMeasure, { isPresent, childRef: ref, sizeRef: size, pop, children: pop === false ? children : reactExports.cloneElement(children, { ref: composedRef }) });
-}
-const PresenceChild = ({ children, initial, isPresent, onExitComplete, custom, presenceAffectsLayout, mode, anchorX, anchorY, root }) => {
-  const presenceChildren = useConstant(newChildrenMap);
-  const id = reactExports.useId();
-  let isReusedContext = true;
-  let context = reactExports.useMemo(() => {
-    isReusedContext = false;
-    return {
-      id,
-      initial,
-      isPresent,
-      custom,
-      onExitComplete: (childId) => {
-        presenceChildren.set(childId, true);
-        for (const isComplete of presenceChildren.values()) {
-          if (!isComplete)
-            return;
-        }
-        onExitComplete && onExitComplete();
-      },
-      register: (childId) => {
-        presenceChildren.set(childId, false);
-        return () => presenceChildren.delete(childId);
-      }
-    };
-  }, [isPresent, presenceChildren, onExitComplete]);
-  if (presenceAffectsLayout && isReusedContext) {
-    context = { ...context };
-  }
-  reactExports.useMemo(() => {
-    presenceChildren.forEach((_, key) => presenceChildren.set(key, false));
-  }, [isPresent]);
-  reactExports.useEffect(() => {
-    !isPresent && !presenceChildren.size && onExitComplete && onExitComplete();
-  }, [isPresent]);
-  children = jsxRuntimeExports.jsx(PopChild, { pop: mode === "popLayout", isPresent, anchorX, anchorY, root, children });
-  return jsxRuntimeExports.jsx(PresenceContext.Provider, { value: context, children });
-};
-function newChildrenMap() {
-  return /* @__PURE__ */ new Map();
-}
-const getChildKey = (child) => child.key || "";
-function onlyElements(children) {
-  const filtered = [];
-  reactExports.Children.forEach(children, (child) => {
-    if (reactExports.isValidElement(child))
-      filtered.push(child);
-  });
-  return filtered;
-}
-const AnimatePresence = ({ children, custom, initial = true, onExitComplete, presenceAffectsLayout = true, mode = "sync", propagate = false, anchorX = "left", anchorY = "top", root }) => {
-  const [isParentPresent, safeToRemove] = usePresence(propagate);
-  const presentChildren = reactExports.useMemo(() => onlyElements(children), [children]);
-  const presentKeys = propagate && !isParentPresent ? [] : presentChildren.map(getChildKey);
-  const isInitialRender = reactExports.useRef(true);
-  const pendingPresentChildren = reactExports.useRef(presentChildren);
-  const exitComplete = useConstant(() => /* @__PURE__ */ new Map());
-  const exitingComponents = reactExports.useRef(/* @__PURE__ */ new Set());
-  const [diffedChildren, setDiffedChildren] = reactExports.useState(presentChildren);
-  const [renderedChildren, setRenderedChildren] = reactExports.useState(presentChildren);
-  useIsomorphicLayoutEffect(() => {
-    isInitialRender.current = false;
-    pendingPresentChildren.current = presentChildren;
-    for (let i = 0; i < renderedChildren.length; i++) {
-      const key = getChildKey(renderedChildren[i]);
-      if (!presentKeys.includes(key)) {
-        if (exitComplete.get(key) !== true) {
-          exitComplete.set(key, false);
-        }
-      } else {
-        exitComplete.delete(key);
-        exitingComponents.current.delete(key);
-      }
-    }
-  }, [renderedChildren, presentKeys.length, presentKeys.join("-")]);
-  const exitingChildren = [];
-  if (presentChildren !== diffedChildren) {
-    let nextChildren = [...presentChildren];
-    for (let i = 0; i < renderedChildren.length; i++) {
-      const child = renderedChildren[i];
-      const key = getChildKey(child);
-      if (!presentKeys.includes(key)) {
-        nextChildren.splice(i, 0, child);
-        exitingChildren.push(child);
-      }
-    }
-    if (mode === "wait" && exitingChildren.length) {
-      nextChildren = exitingChildren;
-    }
-    setRenderedChildren(onlyElements(nextChildren));
-    setDiffedChildren(presentChildren);
-    return null;
-  }
-  const { forceRender } = reactExports.useContext(LayoutGroupContext);
-  return jsxRuntimeExports.jsx(jsxRuntimeExports.Fragment, { children: renderedChildren.map((child) => {
-    const key = getChildKey(child);
-    const isPresent = propagate && !isParentPresent ? false : presentChildren === renderedChildren || presentKeys.includes(key);
-    const onExit = () => {
-      if (exitingComponents.current.has(key)) {
-        return;
-      }
-      if (exitComplete.has(key)) {
-        exitingComponents.current.add(key);
-        exitComplete.set(key, true);
-      } else {
-        return;
-      }
-      let isEveryExitComplete = true;
-      exitComplete.forEach((isExitComplete) => {
-        if (!isExitComplete)
-          isEveryExitComplete = false;
-      });
-      if (isEveryExitComplete) {
-        forceRender?.();
-        setRenderedChildren(pendingPresentChildren.current);
-        propagate && safeToRemove?.();
-        onExitComplete && onExitComplete();
-      }
-    };
-    return jsxRuntimeExports.jsx(PresenceChild, { isPresent, initial: !isInitialRender.current || initial ? void 0 : false, custom, presenceAffectsLayout, mode, root, onExitComplete: isPresent ? void 0 : onExit, anchorX, anchorY, children: child }, key);
-  }) });
-};
 function canUseNativeTimeline(target) {
   if (typeof window === "undefined")
     return false;
@@ -2370,7 +2142,8 @@ function ValueProps() {
       /* @__PURE__ */ jsxRuntimeExports.jsxs("h2", { className: "font-display text-4xl md:text-6xl font-extrabold", children: [
         "A guided city game ",
         /* @__PURE__ */ jsxRuntimeExports.jsx("br", {}),
-        " built around ",
+        " built around",
+        " ",
         /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-gradient", children: "your interests" }),
         "."
       ] }),
@@ -2430,9 +2203,17 @@ function CardStack({
   const reduceMotion = useReducedMotion();
   const viewportWidth = useViewportWidth();
   const len = items.length;
-  const responsiveCardWidth = Math.min(cardWidth, Math.max(280, viewportWidth - 32));
-  const responsiveCardHeight = Math.min(cardHeight, viewportWidth < 640 ? 240 : cardHeight);
-  const [active, setActive] = reactExports.useState(() => wrapIndex(initialIndex, len));
+  const responsiveCardWidth = Math.min(
+    cardWidth,
+    Math.max(280, viewportWidth - 32)
+  );
+  const responsiveCardHeight = Math.min(
+    cardHeight,
+    viewportWidth < 640 ? 240 : cardHeight
+  );
+  const [active, setActive] = reactExports.useState(
+    () => wrapIndex(initialIndex, len)
+  );
   const [hovering, setHovering] = reactExports.useState(false);
   reactExports.useEffect(() => {
     setActive((current) => wrapIndex(current, len));
@@ -2442,7 +2223,10 @@ function CardStack({
     onChangeIndex?.(active, items[active]);
   }, [active]);
   const maxOffset = Math.max(0, Math.floor(maxVisible / 2));
-  const cardSpacing = Math.max(10, Math.round(responsiveCardWidth * (1 - overlap)));
+  const cardSpacing = Math.max(
+    10,
+    Math.round(responsiveCardWidth * (1 - overlap))
+  );
   const stepDeg = maxOffset > 0 ? spreadDeg / maxOffset : 0;
   const canGoPrev = loop || active > 0;
   const canGoNext = loop || active < len - 1;
@@ -2466,7 +2250,17 @@ function CardStack({
       Math.max(700, intervalMs)
     );
     return () => window.clearInterval(id);
-  }, [autoAdvance, intervalMs, hovering, pauseOnHover, reduceMotion, len, loop, active, next]);
+  }, [
+    autoAdvance,
+    intervalMs,
+    hovering,
+    pauseOnHover,
+    reduceMotion,
+    len,
+    loop,
+    active,
+    next
+  ]);
   if (!len) return null;
   const activeItem = items[active];
   return /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -2821,7 +2615,10 @@ const modes = [
     accent: "accent",
     bullets: [
       { icon: Zap, label: "On-device verification with metadata checks" },
-      { icon: CircleCheck, label: "Instant XP rewards after live confirmation" },
+      {
+        icon: CircleCheck,
+        label: "Instant XP rewards after live confirmation"
+      },
       { icon: ArrowRight, label: "Anti-spoofing built in for trusted answers" }
     ],
     cta: "Start sleuthing"
