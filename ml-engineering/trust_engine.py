@@ -1,5 +1,5 @@
 import math
-from image_verification.verifier import get_image_confidence
+from image_verification.image_verifier import get_image_confidence
 from fake_location_detection.detector import check_geo_validity
 
 def calculate_trust_score(location_data):
@@ -27,7 +27,8 @@ def calculate_trust_score(location_data):
     
     # 3. Image Verification Model
     image_url = location_data.get("image_url")
-    image_confidence = get_image_confidence(image_url)
+    category = location_data.get("category")
+    image_confidence = get_image_confidence(image_url, category=category)
     
     # 4. Geo-Consistency Model
     lat = location_data.get("lat")
