@@ -145,11 +145,11 @@ def verify_location_image(
     if image_confidence >= 0.75:
         verdict = "Verified"
     elif image_confidence >= 0.50:
-        verdict = "Warning"
+        verdict = "Uncertain"
     else:
-        verdict = "Rejected"
+        verdict = "Fake"
 
-    is_verified = image_confidence >= 0.60
+    is_verified = image_confidence >= 0.70 # Strict threshold for boolean verified
 
     # Build human-readable summary
     summary = _build_summary(
@@ -187,27 +187,28 @@ def get_image_confidence(image_url: str, category: str = None, location_name: st
 
 def _build_summary(name, category, confidence, verdict, layers) -> str:
     parts = []
+    
+    # Final level icons
+    level_icon = "✅" if verdict == "Verified" else "⚠️" if verdict == "Uncertain" else "❌"
+    
     if verdict == "Verified":
-        parts.append(f"Image verified for '{name}'.")
-    elif verdict == "Warning":
-        parts.append(f"Image for '{name}' has some concerns.")
+        parts.append(f"[{level_icon}] Image Verified: '{name}' meets production-ready standards.")
+    elif verdict == "Uncertain":
+        parts.append(f"[{level_icon}] Image Uncertain: '{name}' has suspicious elements.")
     else:
-        parts.append(f"Image for '{name}' rejected.")
+        parts.append(f"[{level_icon}] Image Rejected: '{name}' is likely a Fake/Stock photo.")
 
     r = layers["real_photo"]
-    parts.append(f"Photo authenticity: {'real' if r['is_real'] else 'suspicious'} ({int(r['score']*100)}%).")
+    parts.append(f"Authenticity: {int(r['score']*100)}%.")
 
     o = layers["ocr"]
     if o["business_name"]:
-        parts.append(f"Sign reads: '{o['business_name']}'.")
+        parts.append(f"Sign detected: '{o['business_name']}'.")
     else:
-        parts.append("No business sign detected in image.")
+        parts.append("No business sign found.")
 
     s = layers["scene"]
-    parts.append(f"Scene classified as '{s['scene_type']}' for category '{category}'.")
+    parts.append(f"Scene: {s['scene_type']}.")
 
-    n = layers["name_match"]
-    parts.append(f"Name match: {int(n['similarity']*100)}% similarity.")
-
-    parts.append(f"Overall confidence: {int(confidence*100)}%.")
+    parts.append(f"System Confidence: {int(confidence*100)}%.")
     return " ".join(parts)

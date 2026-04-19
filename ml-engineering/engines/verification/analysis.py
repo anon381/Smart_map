@@ -27,16 +27,16 @@ else:
 
 # ── Category → valid scene types mapping ──────────────────────────────────────
 CATEGORY_SCENE_MAP = {
-    "game":    ["game_zone", "arcade", "gaming_hall", "entertainment_center"],
-    "food":    ["restaurant", "cafe", "food_court", "kitchen", "bakery", "bar"],
-    "clinic":  ["clinic", "hospital", "medical_facility", "pharmacy", "health_center"],
-    "church":  ["church", "chapel", "cathedral", "mosque", "religious_site"],
-    "hotel":   ["hotel", "lodge", "guesthouse", "accommodation"],
-    "school":  ["school", "college", "university", "classroom", "library"],
-    "shop":    ["shop", "store", "market", "supermarket", "boutique", "mall"],
-    "bank":    ["bank", "financial_institution", "atm", "microfinance"],
-    "gym":     ["gym", "fitness_center", "sports_facility", "workout_room"],
-    "office":  ["office", "corporate_building", "workspace", "co_working"],
+    "game":    ["game_zone", "arcade", "gaming_hall", "entertainment_center", "playstation_spot", "pool_house"],
+    "food":    ["restaurant", "cafe", "food_court", "bakery", "bar", "traditional_ethiopian_restaurant", "coffee_shop", "juice_house"],
+    "clinic":  ["clinic", "hospital", "medical_facility", "pharmacy", "health_center", "dental_office", "laboratory"],
+    "church":  ["church", "chapel", "cathedral", "mosque", "orthodox_church", "religious_site"],
+    "hotel":   ["hotel", "lodge", "guesthouse", "accommodation", "boutique_hotel", "pension"],
+    "school":  ["school", "college", "university", "classroom", "library", "training_center"],
+    "shop":    ["shop", "store", "market", "supermarket", "boutique", "mall", "clothing_store", "mobile_shop"],
+    "bank":    ["bank", "financial_institution", "atm", "microfinance", "insurance_office"],
+    "gym":     ["gym", "fitness_center", "sports_facility", "workout_room", "bodybuilding_gym", "yoga_studio"],
+    "office":  ["office", "corporate_building", "workspace", "co_working", "government_office"],
 }
 
 
@@ -60,11 +60,11 @@ def classify_scene(image_url: str = None, image_bytes: bytes = None, location_na
             return _analyze_with_gemini(image_bytes, model="gemini-2.0-flash")
         except Exception as e:
             if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
-                print("  [SCENE] Gemini 2.0 exhausted, trying 1.5 Flash...")
+                print("  [SCENE] Gemini 2.0 exhausted, trying flash-lite...")
                 try:
-                    return _analyze_with_gemini(image_bytes, model="gemini-1.5-flash")
+                    return _analyze_with_gemini(image_bytes, model="gemini-2.0-flash-lite")
                 except Exception as e2:
-                    print(f"  [SCENE] Gemini 1.5 also failed: {e2}")
+                    print(f"  [SCENE] gemini-2.0-flash-lite also failed: {e2}")
             else:
                 print(f"  [SCENE] Gemini error: {e}")
 
@@ -75,8 +75,15 @@ def _analyze_with_gemini(image_bytes: bytes, model: str = "gemini-2.0-flash") ->
     """Internal helper for Gemini analysis."""
     try:
         prompt = """
-        You are a scene classification expert analyzing a real-world location photo.
-        Carefully identify scene_type (restaurant, clinic, etc.), labels, and a description.
+        You are a scene classification expert analyzing a real-world location photo in an urban environment (Ethiopia).
+        Carefully identify scene_type using specific, granular labels:
+        - "ethiopian coffee shop" or "modern cafe"
+        - "traditional restaurant" or "modern diner"
+        - "commercial gym interior" or "outdoor sports field"
+        - "boutique shop" or "large supermarket"
+        - "orthodox church" or "modern mosque"
+        - "private clinic" or "general hospital"
+        
         Return ONLY JSON:
         {"scene_type": "...", "scene_confidence": 0.0, "scene_description": "...", "labels": [], "text_detected": "..."}
         """

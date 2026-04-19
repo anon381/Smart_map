@@ -12,11 +12,10 @@ Tests 3 scenarios:
   3. Image with no text, wrong category             -> rejected
 """
 
-import sys
-import io
-sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8")
+import sys, os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from image_verification.image_verifier import verify_location_image
+from engines.verification.image_verifier import verify_location_image
 
 BAR_WIDTH = 22
 

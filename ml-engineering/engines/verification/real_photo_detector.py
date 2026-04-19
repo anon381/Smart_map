@@ -102,7 +102,12 @@ def detect_real_photo(image_url: str) -> dict:
     exif_score, exif_reason = check_exif_metadata(pil_image)
     scores["exif_score"] = exif_score
     reasons.append(exif_reason)
-    print(f"  [EXIF]  Score: {exif_score:.2f}")
+
+    # -- Check 1.5: Resolution & Aspect Ratio (NEW) -------------
+    res_score, res_reason = check_resolution_and_aspect(pil_image)
+    scores["res_score"] = res_score
+    reasons.append(res_reason)
+    print(f"  [RES]   Score: {res_score:.2f}")
 
     # -- Check 2: ELA (Error Level Analysis) --------------------
     ela_score, ela_reason = check_ela(pil_image)
@@ -125,8 +130,9 @@ def detect_real_photo(image_url: str) -> dict:
     # ── Final Score Calculation ────────────────────────────────────────────────
     weights = {
         "exif_score":  0.25,
-        "ela_score":   0.30,
-        "noise_score": 0.20,
+        "res_score":   0.15,
+        "ela_score":   0.20,
+        "noise_score": 0.15,
         "ai_score":    0.25,
     }
     
@@ -183,12 +189,24 @@ def check_exif_metadata(pil_image: Image.Image) -> tuple[float, str]:
     found = []
     score = 0.0
 
+    SOFTWARE_TAG = 305 # Software used (e.g. 'Adobe Photoshop')
+
+    found = []
+    score = 0.0
+
     if exif_data.get(MAKE_TAG):
         found.append(f"Camera: {exif_data[MAKE_TAG]}")
         score += 0.35
     if exif_data.get(MODEL_TAG):
         found.append(f"Model: {exif_data[MODEL_TAG]}")
         score += 0.25
+    
+    # Check for manipulation software
+    software = str(exif_data.get(SOFTWARE_TAG, "")).lower()
+    if any(s in software for s in ["photoshop", "illustrator", "canva", "gimp", "snapseed"]):
+        found.append(f"Edited with: {software}")
+        score -= 0.40 # Heavy penalty for PC editing software
+    
     if exif_data.get(DATETIME_TAG):
         found.append(f"Taken: {exif_data[DATETIME_TAG]}")
         score += 0.15
@@ -199,12 +217,53 @@ def check_exif_metadata(pil_image: Image.Image) -> tuple[float, str]:
         found.append("Lens/ISO data present")
         score += 0.10
 
-    score = min(score, 1.0)
+    score = max(0.0, min(score, 1.0))
 
     if found:
         return score, f"EXIF found: {', '.join(found)}"
     else:
         return 0.3, "EXIF present but minimal - weakly real"
+
+
+# ─── Technique 1.5: Resolution & Aspect Ratio ───────────────────────────────
+
+def check_resolution_and_aspect(pil_image: Image.Image) -> tuple[float, str]:
+    """
+    Real-world photos from mobile devices or cameras usually have:
+      - High resolution (> 1MP)
+      - Standard aspect ratios (4:3, 16:9, 3:2)
+    
+    Screenshots or web assets/icons often have:
+      - Low resolution
+      - Square (1:1) or odd aspect ratios
+    """
+    w, h = pil_image.size
+    total_pixels = w * h
+    aspect_ratio = w / h if h != 0 else 1.0
+    
+    score = 0.5 # Neutral base
+    
+    # 1. Resolution Check
+    if total_pixels < 300000: # Less than 640x480 approx
+        score -= 0.3
+        reason = f"Low resolution ({w}x{h}) - likely a compressed web asset"
+    elif total_pixels > 2000000: # > 2MP
+        score += 0.3
+        reason = f"High resolution ({w}x{h}) - likely a real camera photo"
+    else:
+        reason = f"Standard resolution ({w}x{h})"
+        
+    # 2. Aspect Ratio Check
+    # Close to 1.0 (Square) is often a profile pic or generic asset
+    if 0.95 <= aspect_ratio <= 1.05:
+        score -= 0.2
+        reason += ", Square aspect ratio (suspicious for scenery)"
+    # Common camera ratios: 1.33 (4:3), 1.77 (16:9), 1.5 (3:2), and their inverses
+    elif any(abs(aspect_ratio - r) < 0.05 for r in [1.33, 1.77, 1.5, 0.75, 0.56, 0.66]):
+        score += 0.2
+        
+    score = max(0.1, min(score, 1.0))
+    return score, reason
 
 
 # ─── Technique 2: ELA (Error Level Analysis) ──────────────────────────────────
