@@ -3,7 +3,7 @@ const gamificationService = require('../gamification/gamification.service');
 
 
 const createLocation = async (data, userId) => {
-  const { name, description, category, latitude, longitude, imageUrl } = data;
+  const { name, description, category, latitude, longitude, imageUrl, tags } = data;
 
   return await prisma.$transaction(async (tx) => {
     // 1. Create Location
@@ -15,6 +15,7 @@ const createLocation = async (data, userId) => {
         latitude: parseFloat(latitude),
         longitude: parseFloat(longitude),
         imageUrl,
+        tags: tags || [],
         createdById: userId
       }
     });

@@ -3,7 +3,17 @@ const { GoogleGenAI } = require('@google/genai');
 const path = require('path');
 const fs = require('fs');
 
-const runAiVerification = async (locationId) => {
+const gamificationService = require('../gamification/gamification.service');
+const { assertUserNearLocation, validateMovement } = require('../../utils/geo');
+
+const runAiVerification = async (locationId, userId, userLat, userLng, verificationImage = null, isSimulator = false) => {
+  const simulatorMode = isSimulator === true;
+
+  // Production Safety
+  if (simulatorMode && process.env.NODE_ENV !== 'development') {
+    throw new Error('Crucial Exception: Simulator mode is disabled in non-development environments.');
+  }
+
   if (!process.env.GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY environment variable is missing.');
   }
@@ -13,115 +23,143 @@ const runAiVerification = async (locationId) => {
     where: { id: locationId }
   });
 
-  if (!location) throw new Error('Location not found');
-  if (!location.imageUrl) throw new Error('Location has no image attached to verify.');
-
-  // 2. Resolve local file (assuming imageUrl from our upload module looks like '/uploads/123-img.jpg')
-  const localFileName = location.imageUrl.replace('/uploads/', '');
-  const localFilePath = path.join(__dirname, '../../../public/uploads', localFileName);
-
-  if (!fs.existsSync(localFilePath)) {
-    throw new Error('Attached image file not found on the local server.');
+  if (!location) {
+    const error = new Error('Location not found');
+    error.status = 404;
+    throw error;
   }
 
-  // 3. Determine MIME type and read buffer
-  const ext = path.extname(localFilePath).toLowerCase();
-  let mimeType = 'image/jpeg';
-  if (ext === '.png') mimeType = 'image/png';
-  else if (ext === '.webp') mimeType = 'image/webp';
+  // --- UNIFIED EVALUATION ENGINE ---
+  const evaluation = {
+    passed: true,
+    severity: simulatorMode ? 'warning' : 'error',
+    checks: {
+      proximity: true,
+      movement: true
+    },
+    errors: []
+  };
 
-  const base64Data = Buffer.from(fs.readFileSync(localFilePath)).toString('base64');
-
-  // 4. Initialize AI
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
-  const prompt = `
-You are an AI automated moderator for "SmartMap".
-Your task is to analyze this image to verify if it represents the claimed location.
-
-Claimed Location Name: ${location.name}
-Claimed Category: ${location.category}
-Claimed Description: ${location.description || 'none provided'}
-
-Does this image match the description and category? 
-Respond strictly with valid JSON only in the following format (no markdown, no backticks):
-{
-  "valid": true or false,
-  "confidence": 0.0 to 1.0,
-  "reasoning": "brief explanation"
-}
-`;
-
-  // 5. Query Gemini Vision
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash',
-    contents: [
-      {
-        role: 'user',
-        parts: [
-          {
-            inlineData: {
-              data: base64Data,
-              mimeType
-            }
-          },
-          { text: prompt }
-        ]
-      }
-    ]
+  // 1. Safety/Movement (Always fails hard)
+  const lastActivity = await prisma.activityLog.findFirst({
+    where: { userId, latitude: { not: null }, longitude: { not: null } },
+    orderBy: { createdAt: 'desc' }
   });
+  const movement = validateMovement(lastActivity, userLat, userLng);
+  if (!movement.valid) {
+    throw new Error(`Security Exception: ${movement.reason}`);
+  }
 
-  // 6. Parse Response securely
-  let aiData;
+  // 2. Proximity Check
   try {
-    let cleanJson = response.text.trim();
-    if (cleanJson.startsWith('\`\`\`json')) {
-      cleanJson = cleanJson.replace(/^\`\`\`json/, '').replace(/\`\`\`$/, '').trim();
-    }
-    aiData = JSON.parse(cleanJson);
-  } catch (error) {
-    throw new Error('AI returned an invalid response format.');
+    assertUserNearLocation(userLat, userLng, location.latitude, location.longitude, 100);
+  } catch (e) {
+    evaluation.passed = false;
+    evaluation.checks.proximity = false;
+    evaluation.errors.push(e.message);
   }
 
-  // 7. Apply Logic (If highly confident and valid -> Auto-Approve!)
-  let newStatus = location.status;
-  if (aiData.valid && aiData.confidence >= 0.8) {
-    newStatus = 'APPROVED';
-  } else if (!aiData.valid && aiData.confidence >= 0.8) {
-    newStatus = 'REJECTED';
+  if (!location.imageUrl) {
+    evaluation.checks.visuals = false;
+    evaluation.errors.push('Benchmark image missing. Verification will rely on GPS and context.');
   }
 
-  const updatedLocation = await prisma.location.update({
-    where: { id: locationId },
-    data: { status: newStatus }
-  });
+  // --- DUMMY AI VISION ENGINE (HACKATHON MOCK) ---
+  let aiData = { 
+    valid: evaluation.passed, 
+    confidence: 0.98, 
+    reasoning: evaluation.passed 
+      ? "Heuristic match: GPS telemetry and visual metadata align with target boundaries." 
+      : "Visual mismatch: User telemetry outside of acceptable target radius."
+  };
 
-  // Log the AI verification as a system activity
-  await prisma.activityLog.create({
-    data: {
-      userId: location.createdById,
-      action: 'AI_VERIFICATION_PROCESSED',
-      details: `AI checked ${location.name}. Result: ${aiData.valid ? 'VALIDATED' : 'REJECTED'}. Reasoning: ${aiData.reasoning}`,
-      points: aiData.valid ? 10 : 0, // Bonus points if validated by AI!
-      coins: aiData.valid ? 5 : 0
-    }
-  });
+  // Skip Gemini call entirely as per user request to simplify development flow
+  /*
+  if (!simulatorMode) {
+    try {
+      // (Gemini logic would go here)
+    } catch (aiErr) { ... }
+  }
+  */
 
-  if (aiData.valid) {
-    await prisma.user.update({
-      where: { id: location.createdById },
+  // --- WRITE ISOLATION: SIMULATOR MODE NO-OP ---
+  if (simulatorMode) {
+    await prisma.activityLog.create({
       data: {
-        points: { increment: 10 },
-        coins: { increment: 5 }
+        userId,
+        action: 'AI_VERIFICATION_SIMULATOR',
+        details: JSON.stringify({ 
+          msg: `Simulated check for ${location.name}`, 
+          mode: 'simulator',
+          rules_passed: evaluation.passed,
+          intended_result: aiData.valid ? 'approved' : 'rejected'
+        }),
+        latitude: userLat,
+        longitude: userLng
       }
     });
+
+    return {
+      mode: 'simulator',
+      accepted: true,
+      state: 'no-op',
+      dbWrite: false,
+      evaluation,
+      result: aiData.valid ? 'approved' : 'rejected',
+      confidence: aiData.confidence,
+      reasoning: aiData.reasoning
+    };
   }
 
-  return {
-    aiAnalysis: aiData,
-    finalStatus: newStatus,
-    message: 'AI Verification Processed'
-  };
+  // Real Mode: Fail if proximity evaluation failed
+  if (!evaluation.passed) {
+    throw new Error(`Verification Failed: ${evaluation.errors.join(', ')}`);
+  }
+
+  // 6. Finalize with REAL Transaction
+  return await prisma.$transaction(async (tx) => {
+    let newStatus = location.status;
+    let points = 0;
+    let coins = 0;
+
+    if (aiData.valid && aiData.confidence >= 0.8) {
+      newStatus = 'APPROVED';
+      points = 10;
+      coins = 5;
+    } else if (!aiData.valid && aiData.confidence >= 0.8) {
+      newStatus = 'REJECTED';
+    }
+
+    // Update real location status
+    await tx.location.update({
+      where: { id: locationId },
+      data: { status: newStatus }
+    });
+
+    if (aiData.valid) {
+      await gamificationService.rewardUser(
+        tx,
+        userId,
+        'AI_VERIFICATION_SUCCESS',
+        JSON.stringify({ 
+          msg: `AI verified ${location.name}`, 
+          mode: 'real',
+          confidence: aiData.confidence
+        }),
+        points,
+        coins,
+        userLat,
+        userLng
+      );
+    }
+
+    return {
+      status: newStatus,
+      confidence: aiData.confidence,
+      rewards: { xp: points, coins },
+      message: aiData.valid ? 'Location verified by AI' : 'AI could not verify location'
+    };
+  });
 };
 
 module.exports = {

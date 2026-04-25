@@ -38,6 +38,12 @@ model User {
   coins           Int      @default(0)
   role            Role     @default(USER)
   createdAt       DateTime @default(now())
+  
+  // New properties for Phase 3 Alignment
+  streakCount     Int      @default(0)
+  lastActiveAt    DateTime @default(now())
+  city            String?
+  bio             String?
 
   locations       Location[]
   verifications   Verification[]
@@ -47,6 +53,10 @@ model User {
   quizzesCreated  Quiz[]
   quizzesTaken    UserQuiz[]
   savedRoutes     SavedRoute[]
+  
+  inventory       UserInventory[]
+  friends         Friendship[] @relation("UserFriends")
+  followedBy      Friendship[] @relation("UserFollowedBy")
 }
 
 model Location {
@@ -62,11 +72,17 @@ model Location {
   createdAt         DateTime @default(now())
   updatedAt         DateTime? @updatedAt
 
+  // New properties for Phase 3 Alignment
+  tags              String[] @default([])
+
   createdBy   User   @relation(fields: [createdById], references: [id])
   createdById String
 
   verifications Verification[]
   quizzes       Quiz[]
+  missions      Mission[]
+
+  @@index([latitude, longitude])
 }
 
 model Verification {
@@ -90,6 +106,8 @@ model ActivityLog {
   details   String?
   points    Int      @default(0)
   coins     Int      @default(0)
+  latitude  Float?   // Telemetry for anti-cheat
+  longitude Float?   // Telemetry for anti-cheat
   createdAt DateTime @default(now())
 
   user   User   @relation(fields: [userId], references: [id])
@@ -105,6 +123,7 @@ model BlacklistedToken {
 enum MissionStatus {
   ACTIVE
   COMPLETED
+  SIMULATED_COMPLETED
 }
 
 model Mission {
@@ -113,6 +132,15 @@ model Mission {
   description String
   points      Int      @default(0)
   coins       Int      @default(0)
+  
+  // Geographic link (optional, for location-based missions)
+  location    Location? @relation(fields: [locationId], references: [id])
+  locationId  String?
+  
+  // Fallback direct coordinates (if not tied to a specific Location entity)
+  latitude    Float?
+  longitude   Float?
+
   createdAt   DateTime @default(now())
 
   createdBy   User     @relation(fields: [createdById], references: [id])
@@ -157,6 +185,7 @@ model UserQuiz {
   id          String   @id @default(uuid())
   isCorrect   Boolean
   attemptedAt DateTime @default(now())
+  timeTaken   Int?     // Time in seconds for speed bonus calculation
 
   user        User     @relation(fields: [userId], references: [id])
   userId      String
@@ -179,4 +208,40 @@ model SavedRoute {
 
   user           User     @relation(fields: [userId], references: [id])
   userId         String
+}
+
+model Friendship {
+  id          String   @id @default(uuid())
+  userId      String
+  friendId    String
+  createdAt   DateTime @default(now())
+
+  user        User     @relation("UserFriends", fields: [userId], references: [id])
+  friend      User     @relation("UserFollowedBy", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
+}
+
+model ShopItem {
+  id          String   @id @default(uuid())
+  name        String
+  description String
+  price       Int
+  type        String
+  tint        String?
+  detail      String?
+  
+  inventory   UserInventory[]
+}
+
+model UserInventory {
+  id          String   @id @default(uuid())
+  userId      String
+  itemId      String
+  expiresAt   DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id])
+  item        ShopItem @relation(fields: [itemId], references: [id])
 }

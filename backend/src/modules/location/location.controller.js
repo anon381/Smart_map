@@ -3,6 +3,12 @@ const locationService = require('./location.service');
 const createLocation = async (req, res, next) => {
   try {
     const userId = req.user.userId;
+    
+    // Map frontend 'tip' naming convention to backend 'description'
+    if (req.body.tip && !req.body.description) {
+      req.body.description = req.body.tip;
+    }
+    
     const location = await locationService.createLocation(req.body, userId);
 
     res.status(201).json({

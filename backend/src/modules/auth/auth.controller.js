@@ -1,12 +1,20 @@
 const authService = require('./auth.service');
+const jwt = require('jsonwebtoken');
 
 const register = async (req, res, next) => {
   try {
     const user = await authService.registerUser(req.body);
 
+    const token = jwt.sign(
+      { userId: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
     res.status(201).json({
       message: 'User registered successfully',
-      user
+      user,
+      token
     });
   } catch (error) {
     next(error);

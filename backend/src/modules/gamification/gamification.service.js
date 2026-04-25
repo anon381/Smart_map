@@ -3,13 +3,14 @@ const prisma = require('../../prisma/client');
 /**
  * Handles gamification rewards inside a transaction block to ensure atomic operations.
  */
-const rewardUser = async (tx, userId, action, details, points, coins) => {
+const rewardUser = async (tx, userId, action, details, points, coins, latitude = null, longitude = null) => {
   // Update user balances
   await tx.user.update({
     where: { id: userId },
     data: {
       points: { increment: points },
-      coins: { increment: coins }
+      coins: { increment: coins },
+      reputationScore: { increment: (points / 100) } // Trust grows with points
     }
   });
 
@@ -20,7 +21,9 @@ const rewardUser = async (tx, userId, action, details, points, coins) => {
       action,
       details,
       points,
-      coins
+      coins,
+      latitude,
+      longitude
     }
   });
 };

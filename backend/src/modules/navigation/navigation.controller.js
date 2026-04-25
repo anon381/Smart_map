@@ -2,14 +2,14 @@ const navigationService = require('./navigation.service');
 
 const getRoute = async (req, res, next) => {
   try {
-    const { originLat, originLng, destinationLat, destinationLng, waypoints } = req.body;
+    const source = req.method === 'GET' ? req.query : req.body || {};
+    const { originLat, originLng, destinationLat, destinationLng, waypoints } = source;
     
-    // Fallback to query params if it's a GET request without a body
-    const oLat = parseFloat(originLat || req.query.originLat);
-    const oLng = parseFloat(originLng || req.query.originLng);
-    const dLat = parseFloat(destinationLat || req.query.destinationLat);
-    const dLng = parseFloat(destinationLng || req.query.destinationLng);
-    const wPoints = waypoints ? waypoints : [];
+    const oLat = parseFloat(originLat);
+    const oLng = parseFloat(originLng);
+    const dLat = parseFloat(destinationLat);
+    const dLng = parseFloat(destinationLng);
+    const wPoints = Array.isArray(waypoints) ? waypoints : [];
 
     const route = await navigationService.calculateRoute(oLat, oLng, dLat, dLng, wPoints);
     res.json(route);

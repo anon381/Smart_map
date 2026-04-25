@@ -1,53 +1,61 @@
 const prisma = require('../../prisma/client');
 const { GoogleGenAI } = require('@google/genai');
 
-const ragSearch = async (query) => {
+const { calculateDistance } = require('../../utils/geo');
+
+const ragSearch = async (query, userLat, userLng) => {
   if (!process.env.GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY environment variable is missing.');
   }
 
-  // Initialize Gen AI SDK
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-  // 1. Retrieve all approved locations to build the context
-  const locations = await prisma.location.findMany({
+  // 1. Retrieve Candidate Locations (Approved only)
+  const allLocations = await prisma.location.findMany({
     where: { status: 'APPROVED' },
     select: {
       name: true,
       category: true,
       description: true,
       latitude: true,
-      longitude: true,
-      verificationScore: true
+      longitude: true
     }
   });
 
-  if (locations.length === 0) {
-    return 'No verified locations available right now to search through.';
+  // 2. Spatial Pre-Filtering (Radius: 5km)
+  const nearbyLocations = allLocations
+    .map(loc => ({
+      ...loc,
+      distance: calculateDistance(userLat, userLng, loc.latitude, loc.longitude)
+    }))
+    .filter(loc => loc.distance <= 5000) // 5km limit
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, 10); // Top-K Relevance: Focus Gemini on most reachable 10 spots
+
+  if (nearbyLocations.length === 0) {
+    return {
+      answer: "I couldn't find any verified SmartMap locations near your current position.",
+      sourceLocationsSearched: 0
+    };
   }
 
-  // 2. Build the Document Context
-  let contextStr = 'Here is the current database of verified SmartMap locations:\n';
-  locations.forEach((loc, index) => {
-    contextStr += `\n[${index + 1}] Name: ${loc.name} | Category: ${loc.category} | Desc: ${loc.description || 'N/A'}\n`;
-    contextStr += `    Coordinates: (${loc.latitude}, ${loc.longitude}) | Score: ${loc.verificationScore}\n`;
+  // 3. Build Detailed Spatio-Context
+  let contextStr = 'Verified locations within 5km of the user:\n';
+  nearbyLocations.forEach((loc, index) => {
+    contextStr += `\n[${index + 1}] ${loc.name} (${loc.category}) - ${Math.round(loc.distance)}m away\n`;
+    contextStr += `   Description: ${loc.description || 'Verified spot'}\n`;
   });
 
-  // 3. Construct the RAG Prompt
   const prompt = `
-System Context: You are SmartMap AI, a helpful location-based assistant. 
-You answer user questions strictly based on the provided database context below.
-If the database context does not contain the answer, say "I couldn't find that in the SmartMap database." Do not invent locations.
+System: You are SmartMap AI. Answer the user based ONLY on the nearby locations provided. 
+Inform the user about distances (in meters) to make the response actionable.
 
-Database Context:
+Context:
 ${contextStr}
 
 User Question: ${query}
-
-Provide a concise, helpful response:
 `;
 
-  // 4. Generate the response
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash',
     contents: prompt,
@@ -55,7 +63,8 @@ Provide a concise, helpful response:
 
   return {
     answer: response.text,
-    sourceLocationsSearched: locations.length
+    sourceLocationsSearched: nearbyLocations.length,
+    geofenced: true
   };
 };
 

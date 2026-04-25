@@ -3,6 +3,8 @@ const Joi = require('joi');
 const createLocationSchema = Joi.object({
   name: Joi.string().min(3).max(100).required(),
   description: Joi.string().max(500).allow('', null),
+  tip: Joi.string().max(500).allow('', null), // Frontend alias for description
+  tags: Joi.array().items(Joi.string()).allow(null), // Allows array of tags
   category: Joi.string().required(),
   latitude: Joi.number().min(-90).max(90).required(),
   longitude: Joi.number().min(-180).max(180).required(),
@@ -12,6 +14,8 @@ const createLocationSchema = Joi.object({
 const updateLocationSchema = Joi.object({
   name: Joi.string().min(3).max(100),
   description: Joi.string().max(500).allow('', null),
+  tip: Joi.string().max(500).allow('', null),
+  tags: Joi.array().items(Joi.string()).allow(null),
   category: Joi.string(),
   latitude: Joi.number().min(-90).max(90),
   longitude: Joi.number().min(-180).max(180),
