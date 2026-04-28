@@ -9,6 +9,7 @@ import {
 import * as React from "react";
 
 import appCss from "../styles.css?url";
+import LoadingOverlay from "@/components/ui/loading-overlay";
 
 function NotFoundComponent() {
   return (
@@ -67,6 +68,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <LoadingOverlay />
         {children}
         <Scripts />
       </body>
