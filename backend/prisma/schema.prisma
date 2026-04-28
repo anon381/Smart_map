@@ -89,6 +89,8 @@ model Verification {
   id         String   @id @default(uuid())
   vote       VoteType
   confidence Float?
+  latitude   Float?
+  longitude  Float?
   createdAt  DateTime @default(now())
 
   user   User     @relation(fields: [userId], references: [id])

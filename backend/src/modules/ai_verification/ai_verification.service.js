@@ -136,6 +136,25 @@ const runAiVerification = async (locationId, userId, userLat, userLng, verificat
       data: { status: newStatus }
     });
 
+    // 5. Create the Verification record
+    await tx.verification.upsert({
+      where: { userId_locationId: { userId, locationId } },
+      update: {
+        vote: aiData.valid ? 'UP' : 'DOWN',
+        confidence: aiData.confidence,
+        latitude: userLat,
+        longitude: userLng
+      },
+      create: {
+        userId,
+        locationId,
+        vote: aiData.valid ? 'UP' : 'DOWN',
+        confidence: aiData.confidence,
+        latitude: userLat,
+        longitude: userLng
+      }
+    });
+
     if (aiData.valid) {
       await gamificationService.rewardUser(
         tx,
