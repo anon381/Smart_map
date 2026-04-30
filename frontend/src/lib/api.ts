@@ -44,3 +44,14 @@ export const authApi = {
     }),
   getMe: () => apiRequest("/auth/me"),
 };
+
+export const adsApi = {
+  listAds: (placement?: string) => {
+    const query = placement ? `?placement=${encodeURIComponent(placement)}` : "";
+    return apiRequest(`/ads${query}`);
+  },
+  trackImpression: (adId: string) =>
+    apiRequest(`/ads/${adId}/impressions`, { method: "POST" }),
+  trackClick: (adId: string) =>
+    apiRequest(`/ads/${adId}/clicks`, { method: "POST" }),
+};

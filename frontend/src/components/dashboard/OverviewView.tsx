@@ -1,5 +1,6 @@
 import { useDashboard } from "./DashboardContext";
 import { Heatmap } from "./Heatmap";
+import { AdBanner } from "./AdBanner";
 import { Flame, Target, ShieldCheck, TrendingUp, Camera } from "lucide-react";
 
 
@@ -48,6 +49,8 @@ export function OverviewView() {
         </div>
         <Heatmap />
       </section>
+
+      <AdBanner placement="dashboard" />
 
       <section className="rounded-2xl border border-border/60 bg-gradient-card p-5 shadow-elegant">
         <h2 className="mb-4 text-lg font-semibold text-foreground">Recent Activity</h2>
