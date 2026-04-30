@@ -54,6 +54,7 @@ def get_next_mission(
     current_lng: float,
     user_id: str = "anonymous",
     user_reputation: float = 0.6,
+    locations_override: list = None,
 ) -> dict:
     """
     Selects the most valuable nearby mission using entropy scoring.
@@ -64,10 +65,11 @@ def get_next_mission(
       3. Diversity: avoid same area repeatedly
       4. Closer is better (but not the only factor)
     """
+    source_pool = locations_override if locations_override is not None else locations
     now = time.time()
     scored_targets = []
 
-    for loc in locations:
+    for loc in source_pool:
         loc_id = loc["id"]
 
         # FIX 2: Skip recently verified locations (cooldown)
@@ -128,14 +130,15 @@ def get_next_mission(
 
 # ── Gemini Persona Chat ───────────────────────────────────────────────────────
 
-def get_gemini_persona_chat(current_lat: float, current_lng: float) -> dict:
+def get_gemini_persona_chat(current_lat: float, current_lng: float, locations_override: list = None) -> dict:
     """Personality-driven robot dialogue based on nearby locations."""
     client = _get_gemini_client()
     if not client:
         return {"message": "My sensors are offline — but let's explore anyway!", "source": "fallback"}
 
+    source_pool = locations_override if locations_override is not None else locations
     nearby = []
-    for loc in locations:
+    for loc in source_pool:
         dist = _haversine(current_lat, current_lng, loc["lat"], loc["lng"])
         if dist < 0.5:
             nearby.append(f"{loc['name']} ({loc['category']})")
@@ -161,6 +164,7 @@ def generate_quiz(
     mode: str = "choice",
     current_lat: Optional[float] = None,
     current_lng: Optional[float] = None,
+    locations_override: list = None,
 ) -> dict:
     """
     Generates a verified, fraud-resistant map quiz.
@@ -168,9 +172,10 @@ def generate_quiz(
     FIX 3: Uses REAL nearby locations as distractors (no AI hallucination)
     FIX 6: Filters out low-quality images before quiz generation
     """
+    source_pool = locations_override if locations_override is not None else locations
     # FIX 6: Filter locations with usable images only
     loc_with_img = [
-        l for l in locations
+        l for l in source_pool
         if l.get("image_url") and _passes_image_quality_check(l["image_url"])
     ]
     if not loc_with_img:
@@ -180,7 +185,7 @@ def generate_quiz(
 
     # FIX 3: Pull real nearby distractors from database
     distractors = _get_real_distractors(
-        target, current_lat, current_lng, needed=3
+        target, current_lat, current_lng, needed=3, source_locations=source_pool
     )
 
     # Difficulty scoring affects confirmation weight (FIX 1)
@@ -351,17 +356,19 @@ def _get_real_distractors(
     lat: Optional[float],
     lng: Optional[float],
     needed: int = 3,
+    source_locations: list = None,
 ) -> list:
     """
     Returns real locations from the database to use as wrong answer options.
     Prefers same-category places nearby to maximise quiz difficulty.
     """
+    pool = source_locations if source_locations is not None else locations
     same_cat = [
-        l for l in locations
+        l for l in pool
         if l["id"] != target["id"] and l.get("category") == target.get("category")
     ]
     other = [
-        l for l in locations
+        l for l in pool
         if l["id"] != target["id"] and l not in same_cat
     ]
 

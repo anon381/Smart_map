@@ -14,10 +14,6 @@ const runAiVerification = async (locationId, userId, userLat, userLng, verificat
     throw new Error('Crucial Exception: Simulator mode is disabled in non-development environments.');
   }
 
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error('GEMINI_API_KEY environment variable is missing.');
-  }
-
   // 1. Fetch location details
   const location = await prisma.location.findUnique({
     where: { id: locationId }
@@ -75,10 +71,11 @@ const runAiVerification = async (locationId, userId, userLat, userLng, verificat
       image_url: location.imageUrl,
       lat: location.latitude,
       lng: location.longitude,
-      rating: location.rating || 0
+      rating: 0
     };
 
-    const mlResponse = await fetch('http://localhost:5001/verify', {
+    const mlEngineUrl = process.env.ML_ENGINE_URL || 'http://localhost:5001';
+    const mlResponse = await fetch(`${mlEngineUrl}/verify`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(mlPayload)

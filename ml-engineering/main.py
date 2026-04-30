@@ -36,8 +36,14 @@ app = FastAPI(
 
 # ── Data Models ─────────────────────────────────────────────────────────────
 
-class VerifyIDRequest(BaseModel):
-    location_id: str
+class VerifyRequest(BaseModel):
+    id: str
+    name: str
+    category: str
+    image_url: Optional[str] = None
+    lat: float
+    lng: float
+    rating: float = 0
 
 class QueryRequest(BaseModel):
     query: str
@@ -92,13 +98,11 @@ async def database_query(
     return results
 
 @app.post("/verify")
-async def verify_location(request: VerifyIDRequest):
+async def verify_location(request: VerifyRequest):
     """
     Runs the 4-layer AI Verification on a location based on its stored image.
     """
-    record = next((l for l in locations if l["id"] == request.location_id), None)
-    if not record:
-        raise HTTPException(status_code=404, detail=f"Location ID '{request.location_id}' not found.")
+    record = request.model_dump()
     
     try:
         result = verify_location_image(
@@ -107,7 +111,14 @@ async def verify_location(request: VerifyIDRequest):
             category=record["category"]
         )
         return {
-            **result,
+            "valid": result["is_verified"],
+            "confidence": result["image_confidence"],
+            "reasoning": result["summary"],
+            "image_confidence": result["image_confidence"],
+            "is_verified": result["is_verified"],
+            "verdict": result["verdict"],
+            "summary": result["summary"],
+            "layers": result["layers"],
             "metadata": {
                 "id": record["id"],
                 "name": record["name"],
@@ -143,12 +154,12 @@ class QuizRequest(BaseModel):
 @app.post("/mission/next")
 async def next_mission(req: MissionRequest):
     """Calculates the best verification mission for the user based on distance and trust needs."""
-    return get_next_mission(req.lat, req.lng)
+    return get_next_mission(req.lat, req.lng, locations_override=req.locations_list if req.locations_list else None)
 
 @app.post("/mission/persona")
 async def robot_persona(req: MissionRequest):
     """Triggers Gemini-powered dynamic dialogue for the Robotic Car persona."""
-    return get_gemini_persona_chat(req.lat, req.lng)
+    return get_gemini_persona_chat(req.lat, req.lng, locations_override=req.locations_list if req.locations_list else None)
 
 @app.post("/quiz/generate")
 async def quiz_generate(req: QuizRequest):
@@ -156,7 +167,8 @@ async def quiz_generate(req: QuizRequest):
     Generates a Map Verification Quiz.
     Modes: 'choice' (MCQ) or 'binary' (True/False)
     """
-    return generate_quiz(mode=req.mode, current_lat=req.lat, current_lng=req.lng)
+    return generate_quiz(mode=req.mode, current_lat=req.lat, current_lng=req.lng, 
+                         locations_override=req.locations_list if req.locations_list else None)
 
 @app.post("/quiz/submit")
 async def quiz_submit(request: QuizSubmitRequest):

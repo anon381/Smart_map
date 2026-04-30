@@ -49,13 +49,17 @@ ${contextStr}
 User asks: ${query}`;
 
   try {
+    if (!process.env.GEMINI_API_KEY) {
+      throw new Error("Missing API Key");
+    }
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    const model = ai.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.0-flash',
+      contents: prompt,
+    });
     return {
       engine: 'SmartMap DB',
-      answer: response.text().trim(),
+      answer: response.text.trim(),
       results: nearby.slice(0, 5).map(l => ({
         name: l.name,
         category: l.category,
@@ -65,6 +69,7 @@ User asks: ${query}`;
       confidence: 0.85
     };
   } catch (e) {
+    // Graceful fallback: return DB results without AI summary
     const top = nearby[0];
     return {
       engine: 'SmartMap DB',
@@ -125,10 +130,6 @@ const ragSearch = async (query, userLat, userLng) => {
 // UNIFIED: Run both engines in parallel
 // ─────────────────────────────────────────────────────────────
 const unifiedSearch = async (query, userLat, userLng) => {
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error('GEMINI_API_KEY environment variable is missing.');
-  }
-
   const [dbResult, ragResult] = await Promise.allSettled([
     dbSearch(query, userLat, userLng),
     ragSearch(query, userLat, userLng)
