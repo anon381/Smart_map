@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Mail, Lock, ArrowRight, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { authApi } from "@/lib/api";
 
 export const Route = createFileRoute("/signup")({
   head: () => ({
@@ -25,7 +26,7 @@ function SignUpPage() {
   const validateEmail = (value: string) =>
     /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
-  const handleSignUp = (event: React.FormEvent) => {
+  const handleSignUp = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!name || !email || !password || !confirmPassword) {
@@ -45,8 +46,17 @@ function SignUpPage() {
     }
 
     setError("");
-    // UI-only demo
-    navigate({ to: "/dashboard" });
+    try {
+      const regRes = await authApi.register({ name, email, password });
+      if (regRes?.token) {
+        localStorage.setItem("token", regRes.token);
+        navigate({ to: "/dashboard" });
+      } else {
+        navigate({ to: "/signin" });
+      }
+    } catch (err: any) {
+      setError(err?.message || "Registration failed");
+    }
   };
 
   return (

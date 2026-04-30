@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { authApi } from "@/lib/api";
 
 export const Route = createFileRoute("/signin")({
   head: () => ({
@@ -22,15 +23,23 @@ export function SignInPage() {
 
   const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
-  const handleSignIn = (e: React.FormEvent) => {
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password)
-      return setError("Please enter both email and password.");
-    if (!validateEmail(email))
-      return setError("Please enter a valid email address.");
+    if (!email || !password) return setError("Please enter both email and password.");
+    if (!validateEmail(email)) return setError("Please enter a valid email address.");
+
     setError("");
-    // UI-only demo
-    navigate({ to: "/dashboard" });
+    try {
+      const res = await authApi.login({ email, password });
+      if (res?.token) {
+        localStorage.setItem("token", res.token);
+        navigate({ to: "/dashboard" });
+      } else {
+        setError("Invalid response from server");
+      }
+    } catch (err: any) {
+      setError(err?.message || "Login failed");
+    }
   };
 
   return (

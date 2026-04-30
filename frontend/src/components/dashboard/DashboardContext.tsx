@@ -43,26 +43,35 @@ type Ctx = {
 
 const DashboardCtx = createContext<Ctx | null>(null);
 
+import { useQuery } from "@tanstack/react-query";
+import { authApi } from "@/lib/api";
+
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [activeCategory, setActiveCategory] = useState<CategoryId | null>(null);
+
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ["me"],
+    queryFn: () => authApi.getMe(),
+    retry: false,
+  });
 
   const openCategory = (c: CategoryId) => {
     setActiveCategory(c);
   };
 
   const user: User = {
-    name: "Alex Morgan",
-    initials: "AM",
-    rank: "Gold",
-    level: 18,
-    xp: 8420,
-    xpNext: 10000,
-    coins: 2450,
-    points: 18760,
-    streak: 14,
-    trustScore: 98.4,
-    totalMissions: 142,
-    city: "Lagos",
+    name: userData?.name || "Loading...",
+    initials: userData?.name?.split(" ").map((n: string) => n[0]).join("") || "??",
+    rank: "Gold", // These could also be fetched from backend if available
+    level: userData?.level || 1,
+    xp: userData?.xp || 0,
+    xpNext: 1000,
+    coins: userData?.coins || 0,
+    points: userData?.points || 0,
+    streak: userData?.streakCount || 0,
+    trustScore: userData?.reputationScore || 0,
+    totalMissions: 0,
+    city: userData?.city || "Unknown",
   };
 
   return (
