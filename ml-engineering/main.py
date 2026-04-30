@@ -165,4 +165,4 @@ if __name__ == "__main__":
     print("  SmartMap Unified Backend — [PORT 5000]")
     print("  Status: All Systems Consolidated")
     print("="*60 + "\n")
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=5001)

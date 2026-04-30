@@ -1,14 +1,14 @@
 # SmartMap ML API — Integration Guide
 
 **For:** Frontend Team & Backend/Database Team
-**Base URL:** `http://localhost:5000` (local) | Replace with cloud URL when deployed
-**Interactive Docs:** `http://localhost:5000/docs` (Swagger UI — test endpoints in browser)
+**Base URL:** `http://localhost:5001` (local) | Replace with cloud URL when deployed
+**Interactive Docs:** `http://localhost:5001/docs` (Swagger UI — test endpoints in browser)
 
 ---
 
 > **Quick Check:** Is the ML server running?
 > ```bash
-> curl http://localhost:5000/
+> curl http://localhost:5001/
 > ```
 > Expected response: `{ "status": "online", "service": "SmartMap Unified Backend" }`
 
