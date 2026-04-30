@@ -91,7 +91,332 @@ const userLocationIcon = new L.DivIcon({
   iconAnchor: [30, 30],
 });
 
-// Mock data removed in favor of real API fetching
+const samplePoints: NearbyPlace[] = [
+  {
+    lat: 6.5244,
+    lng: 3.3792,
+    name: "City Central Taxi Terminal",
+    category: "transport",
+    distance: 250,
+    status: "Navigating",
+    note: "High pickup traffic · best for transit missions",
+  },
+  {
+    lat: 6.5231,
+    lng: 3.3811,
+    name: "Marina Ride Share Point",
+    category: "transport",
+    distance: 310,
+    status: "Busy",
+    note: "Quick pickup lane · 3-minute wait",
+  },
+  {
+    lat: 6.5274,
+    lng: 3.3851,
+    name: "Central Bus Link",
+    category: "transport",
+    distance: 430,
+    status: "Open now",
+    note: "Major transfer stop · frequent departures",
+  },
+  {
+    lat: 6.5288,
+    lng: 3.3804,
+    name: "Harbor Shuttle Bay",
+    category: "transport",
+    distance: 520,
+    status: "Open now",
+    note: "Easy route to the waterfront terminals",
+  },
+  {
+    lat: 6.5283,
+    lng: 3.3831,
+    name: "Marina Hidden Café",
+    category: "food",
+    distance: 340,
+    status: "Open now",
+    note: "Popular breakfast stop · 4.8 rating",
+  },
+  {
+    lat: 6.5291,
+    lng: 3.3818,
+    name: "Lighthouse Brunch Spot",
+    category: "food",
+    distance: 460,
+    status: "Open now",
+    note: "Weekend crowd favorite · fast service",
+  },
+  {
+    lat: 6.5250,
+    lng: 3.3856,
+    name: "Palm Street Juice Bar",
+    category: "food",
+    distance: 540,
+    status: "Quiet",
+    note: "Cold drinks · low queue at the moment",
+  },
+  {
+    lat: 6.5272,
+    lng: 3.3862,
+    name: "Luna Noodle Stand",
+    category: "food",
+    distance: 590,
+    status: "Open now",
+    note: "Quick bites · high review score",
+  },
+  {
+    lat: 6.5201,
+    lng: 3.3755,
+    name: "Heritage Mural Wall",
+    category: "art",
+    distance: 410,
+    status: "Quiet",
+    note: "Great photo spot · low crowd now",
+  },
+  {
+    lat: 6.5215,
+    lng: 3.3778,
+    name: "District 7 Art Lane",
+    category: "art",
+    distance: 500,
+    status: "Trending",
+    note: "Street artists rotating today",
+  },
+  {
+    lat: 6.5189,
+    lng: 3.3805,
+    name: "Neon Wall Gallery",
+    category: "art",
+    distance: 610,
+    status: "Open now",
+    note: "Good for high-value photo missions",
+  },
+  {
+    lat: 6.5222,
+    lng: 3.3744,
+    name: "Color Step Studio",
+    category: "art",
+    distance: 680,
+    status: "Trending",
+    note: "Fresh mural drop · active crowd",
+  },
+  {
+    lat: 6.5260,
+    lng: 3.3880,
+    name: "Old Library Quiet Zone",
+    category: "study",
+    distance: 620,
+    status: "Open now",
+    note: "Free wifi · best for study missions",
+  },
+  {
+    lat: 6.5299,
+    lng: 3.3895,
+    name: "Campus Read Room",
+    category: "study",
+    distance: 710,
+    status: "Open now",
+    note: "Low noise · charger stations available",
+  },
+  {
+    lat: 6.5228,
+    lng: 3.3871,
+    name: "Coastline Research Desk",
+    category: "study",
+    distance: 820,
+    status: "Quiet",
+    note: "Bright tables · ideal for longer sessions",
+  },
+  {
+    lat: 6.5239,
+    lng: 3.3903,
+    name: "Study Lounge Annex",
+    category: "study",
+    distance: 860,
+    status: "Open now",
+    note: "Power outlets · low distraction",
+  },
+  {
+    lat: 6.5304,
+    lng: 3.3764,
+    name: "Heritage Chapel",
+    category: "culture",
+    distance: 690,
+    status: "Open now",
+    note: "Historic site · guided entry slots today",
+  },
+  {
+    lat: 6.5320,
+    lng: 3.3738,
+    name: "Old Fort Museum",
+    category: "culture",
+    distance: 740,
+    status: "Open now",
+    note: "Heritage walkthroughs every hour",
+  },
+  {
+    lat: 6.5289,
+    lng: 3.3749,
+    name: "Community Heritage Hall",
+    category: "culture",
+    distance: 780,
+    status: "Busy",
+    note: "Local stories exhibit · good mission score",
+  },
+  {
+    lat: 6.5315,
+    lng: 3.3791,
+    name: "City Shrine Steps",
+    category: "culture",
+    distance: 810,
+    status: "Quiet",
+    note: "Good for faith missions and photos",
+  },
+  {
+    lat: 6.5197,
+    lng: 3.3826,
+    name: "Hidden Courtyard Archive",
+    category: "hidden",
+    distance: 560,
+    status: "Hard to spot",
+    note: "Secret lane · unlocks a rare badge",
+  },
+  {
+    lat: 6.5179,
+    lng: 3.3819,
+    name: "Back Alley Record Shop",
+    category: "hidden",
+    distance: 630,
+    status: "Hard to spot",
+    note: "Locals-only place · rare quest entry",
+  },
+  {
+    lat: 6.5218,
+    lng: 3.3798,
+    name: "Palm Court Secret Cafe",
+    category: "hidden",
+    distance: 700,
+    status: "Open now",
+    note: "Hidden menu · badge-worthy visit",
+  },
+  {
+    lat: 6.5235,
+    lng: 3.3788,
+    name: "Whisper Lane Lookout",
+    category: "hidden",
+    distance: 760,
+    status: "Quiet",
+    note: "Hard-to-find view point · photo bonus",
+  },
+  {
+    lat: 6.5279,
+    lng: 3.3768,
+    name: "Wellness Corner Clinic",
+    category: "health",
+    distance: 760,
+    status: "Open now",
+    note: "Fast check-in · wellness missions nearby",
+  },
+  {
+    lat: 6.5293,
+    lng: 3.3782,
+    name: "Pulse Care Center",
+    category: "health",
+    distance: 820,
+    status: "Open now",
+    note: "Health check missions are active here",
+  },
+  {
+    lat: 6.5269,
+    lng: 3.3739,
+    name: "Greenline Pharmacy",
+    category: "health",
+    distance: 880,
+    status: "Busy",
+    note: "Quick service · useful daily stop",
+  },
+  {
+    lat: 6.5254,
+    lng: 3.3770,
+    name: "Wellness Trail Studio",
+    category: "health",
+    distance: 930,
+    status: "Quiet",
+    note: "Low noise · active wellness challenge",
+  },
+  {
+    lat: 6.5258,
+    lng: 3.3749,
+    name: "Tech Fix Hub",
+    category: "services",
+    distance: 880,
+    status: "Open now",
+    note: "Local services spot · good for errands",
+  },
+  {
+    lat: 6.5248,
+    lng: 3.3734,
+    name: "Street Repair Booth",
+    category: "services",
+    distance: 940,
+    status: "Open now",
+    note: "Fast turnaround · everyday errands",
+  },
+  {
+    lat: 6.5278,
+    lng: 3.3726,
+    name: "Parcel Drop Point",
+    category: "services",
+    distance: 990,
+    status: "Busy",
+    note: "Pickup and delivery hub nearby",
+  },
+  {
+    lat: 6.5232,
+    lng: 3.3751,
+    name: "Quick Fix Workshop",
+    category: "services",
+    distance: 1040,
+    status: "Open now",
+    note: "Best for urgent small repairs",
+  },
+  {
+    lat: 6.5311,
+    lng: 3.3844,
+    name: "Game Arcade Dock",
+    category: "game",
+    distance: 930,
+    status: "Open now",
+    note: "Bonus challenge zone · active players inside",
+  },
+  {
+    lat: 6.5297,
+    lng: 3.3867,
+    name: "Pixel Arena",
+    category: "game",
+    distance: 980,
+    status: "Busy",
+    note: "Daily challenge boards are live",
+  },
+  {
+    lat: 6.5323,
+    lng: 3.3829,
+    name: "Quest Pocket Hub",
+    category: "game",
+    distance: 1060,
+    status: "Open now",
+    note: "Mini-game missions and streak rewards",
+  },
+  {
+    lat: 6.5271,
+    lng: 3.3879,
+    name: "Turbo Play Corner",
+    category: "game",
+    distance: 1110,
+    status: "Quiet",
+    note: "Good for quick score runs",
+  },
+];
 
 function FollowPlayer({ position, follow }: { position: [number, number] | null; follow: boolean }) {
   const map = useMap();
@@ -138,13 +463,15 @@ export function MapView() {
 
 
   const cat = categories.find((c) => c.id === activeCategory);
-  
-  const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
-  
+  const [target] = useState<{ name: string; distance: number } | null>({
+    name: samplePoints[0].name,
+    distance: 250,
+  });
   const [unlocked, setUnlocked] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [minimized, setMinimized] = useState(false);
   const [resultsMinimized, setResultsMinimized] = useState(false);
+  const [position, setPosition] = useState<[number, number] | null>(null);
   const [follow, setFollow] = useState(true);
   const [query, setQuery] = useState("");
   const [ragData, setRagData] = useState<RagResponse | null>(null);
@@ -465,65 +792,11 @@ export function MapView() {
           )}
         </AnimatePresence>
 
-        {/* Navigation Directions Ribbon */}
-        {routeData && (
-          <div className="flex items-center gap-4 rounded-full border border-primary/40 bg-black/80 px-4 py-2 text-[10px] sm:text-xs backdrop-blur-xl shadow-glow animate-in slide-in-from-top-4 duration-500">
-            <div className="flex items-center gap-2 border-r border-border/60 pr-4">
-              <Navigation2 className="h-3.5 w-3.5 text-primary-glow fill-primary/20" />
-              <span className="font-bold text-foreground">
-                {routeData.summary || "Main Route"}
-              </span>
-            </div>
-            <div className="flex items-center gap-3 border-r border-border/60 pr-4">
-              <span className="text-muted-foreground">
-                {routeData.estimatedDistanceKm} km
-              </span>
-              <span className="text-primary-glow">
-                {routeData.estimatedTimeMin} min ETA
-              </span>
-            </div>
-            <button
-               onClick={handleSaveRoute}
-               disabled={saveRouteMutation.isPending}
-               className="flex items-center gap-1.5 text-muted-foreground hover:text-primary-glow transition-colors disabled:opacity-50"
-            >
-               {saveRouteMutation.isSuccess ? (
-                 <CheckCircle className="h-4 w-4 text-success" />
-               ) : saveRouteMutation.isPending ? (
-                 <Loader2 className="h-4 w-4 animate-spin" />
-               ) : (
-                 <Bookmark className="h-4 w-4" />
-               )}
-               <span className="hidden sm:inline">Save</span>
-            </button>
-          </div>
-        )}
-      </div>
-      {/* Global Status Ribbon for Edge Cases */}
-      {(geoError || isGeoLoading || isNearbyLoading) && (
-        <div className="absolute inset-x-0 top-24 z-2000 flex items-center justify-center p-2">
-          <div className="flex items-center gap-2 rounded-full border border-border/60 bg-black/80 px-4 py-1.5 text-[11px] backdrop-blur-xl shadow-elegant">
-            {isGeoLoading ? (
-              <>
-                <Loader2 className="h-3 w-3 animate-spin text-primary-glow" />
-                <span className="text-foreground">Acquiring GPS Signal...</span>
-              </>
-            ) : geoError ? (
-              <>
-                <AlertTriangle className="h-3 w-3 text-warning" />
-                <span className="text-foreground">
-                  GPS Denied · Defaulting to City View
-                </span>
-              </>
-            ) : isNearbyLoading ? (
-              <>
-                <div className="h-2 w-2 animate-pulse rounded-full bg-primary-glow" />
-                <span className="text-foreground">Syncing nearby points...</span>
-              </>
-            ) : null}
-          </div>
-        </div>
-      )}
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, []);
+
+  return (
+    <div className="relative h-[calc(100vh-56px)] w-full lg:h-screen">
       <MapContainer
         center={effectivePos.lat && effectivePos.lng ? [effectivePos.lat, effectivePos.lng] : [8.9806, 38.7578]}
         zoom={14}
@@ -639,7 +912,7 @@ export function MapView() {
             </Popup>
           </Marker>
         ))}
-        {typeof effectivePos.lat === 'number' && typeof effectivePos.lng === 'number' && !isNaN(effectivePos.lat) && !isNaN(effectivePos.lng) && (
+        {position && (
           <>
             <Marker position={[effectivePos.lat, effectivePos.lng]} icon={userLocationIcon}>
               <Popup>
@@ -705,29 +978,10 @@ export function MapView() {
         )}
       </MapContainer>
 
-      {/* WASD HUD Overlay */}
-      {isSimulator && (
-        <div className="absolute bottom-24 left-1/2 z-2000 -translate-x-1/2">
-          <div className="flex flex-col items-center gap-2 rounded-2xl border border-primary/40 bg-black/80 px-4 py-3 backdrop-blur-xl shadow-glow">
-            <div className="flex gap-2">
-              <Key cap="W" />
-            </div>
-            <div className="flex gap-2">
-              <Key cap="A" />
-              <Key cap="S" />
-              <Key cap="D" />
-            </div>
-            <p className="mt-1 text-[9px] uppercase tracking-widest text-primary-glow animate-pulse">
-              Robot: Keyboard Control Active
-            </p>
-          </div>
-        </div>
-      )}
-
       <div className="pointer-events-none absolute left-4 top-4 z-1000 flex items-center gap-2 rounded-full border border-border/60 bg-black/70 px-3 py-2 text-[11px] text-foreground backdrop-blur sm:px-4 sm:text-xs">
         <MapPin className="h-3.5 w-3.5 text-primary-glow" />
         <span className="font-medium">{nearbyLabel}</span>
-        <span className="text-muted-foreground">· {locations.length} pins</span>
+        <span className="text-muted-foreground">· {samplePoints.length} pins</span>
       </div>
 
       {resultsMinimized ? (
@@ -769,37 +1023,18 @@ export function MapView() {
           <div ref={resultsScrollRef} className="mt-3 max-h-56 space-y-2 overflow-y-auto pr-1 sm:max-h-72">
             {nearbyPlaces.map((place) => {
               const categoryLabel = categories.find((item) => item.id === place.category)?.label ?? place.category;
-              const isSelected = selectedTargetId === place.id;
               return (
-                <button
-                  key={place.id}
-                  onClick={() => {
-                    setSelectedTargetId(place.id);
-                    setFollow(true);
-                  }}
-                  className={`w-full rounded-xl border p-2.5 text-left transition-all sm:p-3 ${
-                    isSelected 
-                      ? "border-primary bg-primary/10 shadow-glow" 
-                      : "border-border/40 bg-surface/40 hover:border-primary/30"
-                  }`}
-                >
+                <div key={place.name} className="rounded-xl border border-border/40 bg-surface/40 p-2.5 sm:p-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate text-xs font-medium text-foreground sm:text-sm">{place.name}</p>
-                        {isSelected && <span className="h-1.5 w-1.5 rounded-full bg-primary-glow animate-pulse" />}
-                      </div>
+                      <p className="truncate text-xs font-medium text-foreground sm:text-sm">{place.name}</p>
                       <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{categoryLabel}</p>
                     </div>
-                    <div className="flex flex-col items-end gap-1">
-                      <span className="text-[10px] text-primary-glow">+{place.points} XP</span>
-                      <span className="text-[10px] text-muted-foreground">{place.distance} km</span>
-                    </div>
+                    <span className="text-[10px] text-primary-glow">{place.distance}m</span>
                   </div>
-                  <p className="mt-2 text-[11px] text-muted-foreground sm:text-xs">
-                    {place.statusText || (place as any).note || "Tap to set as target for this mission."}
-                  </p>
-                </button>
+                  <p className="mt-2 text-[11px] text-muted-foreground sm:text-xs">{place.note}</p>
+                  <div className="mt-2 text-[10px] text-muted-foreground">{place.status}</div>
+                </div>
               );
             })}
           </div>
@@ -807,30 +1042,6 @@ export function MapView() {
       )}
 
       <div className="absolute right-2 top-20 z-1000 flex max-w-[min(44vw,10rem)] flex-col gap-2 sm:right-4 sm:top-4 sm:max-w-none">
-        <button
-          onClick={toggleSimulator}
-          className={`flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-2 text-[11px] backdrop-blur transition sm:px-3 sm:text-xs ${
-            isSimulator
-              ? "border-primary bg-primary text-primary-foreground shadow-glow"
-              : "border-border/60 bg-black/70 text-muted-foreground hover:text-foreground"
-          }`}
-          title="Robot mode"
-        >
-          <Navigation2 className={`h-3.5 w-3.5 ${isSimulator ? 'animate-pulse' : ''}`} />
-          {isSimulator ? "Robot Active" : "Robot Mode"}
-        </button>
-        <button
-          onClick={() => setIsAddMode(!isAddMode)}
-          className={`flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-2 text-[11px] backdrop-blur transition sm:px-3 sm:text-xs ${
-            isAddMode
-              ? "border-primary bg-primary text-primary-foreground shadow-glow"
-              : "border-border/60 bg-black/70 text-muted-foreground hover:text-foreground"
-          }`}
-          title="Add location"
-        >
-          <MapPinPlus className="h-3.5 w-3.5" />
-          {isAddMode ? "Cancel Add" : "Add Place"}
-        </button>
         <button
           onClick={() => setFollow((f) => !f)}
           className={`flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-2 text-[11px] backdrop-blur transition sm:px-3 sm:text-xs ${
@@ -869,11 +1080,11 @@ export function MapView() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="text-[10px] uppercase tracking-widest text-primary-glow">
-                  {isSimulator ? "Simulated Quest" : "Active Quest"}
+                  Active Quest
                 </p>
                 <p className="truncate text-sm font-semibold text-foreground sm:text-base">{target.name}</p>
                 <p className="text-[11px] text-muted-foreground sm:text-xs">
-                  {target.distance}km away ·{" "}
+                  {target.distance}m away ·{" "}
                   <span className={unlocked ? "text-success" : "text-warning"}>
                     {unlocked ? "AT TARGET — Form Unlocked" : "Navigating"}
                   </span>
@@ -885,7 +1096,7 @@ export function MapView() {
                     onClick={() => setUnlocked(true)}
                     className="inline-flex items-center gap-1.5 rounded-full bg-gradient-primary px-3 py-2 text-[11px] font-semibold text-primary-foreground shadow-glow sm:px-4 sm:text-xs"
                   >
-                    <Navigation2 className="h-3.5 w-3.5" /> Force Unlock
+                    <Navigation2 className="h-3.5 w-3.5" /> Simulate Arrival
                   </button>
                 ) : (
                   <button
@@ -907,26 +1118,14 @@ export function MapView() {
           </div>
         ))}
 
-      {showForm && target && (
+      {showForm && (
         <SubmissionForm
-          locationId={target.id}
-          target={target.name}
-          category={cat?.label ?? target.category}
-          userLat={effectivePos.lat || 0}
-          userLng={effectivePos.lng || 0}
-          isSimulator={isSimulator}
+          target={target?.name ?? ""}
+          category={cat?.label ?? "Unknown"}
           onClose={() => {
             setShowForm(false);
             setUnlocked(false);
           }}
-        />
-      )}
-
-      {addCoords && (
-        <AddLocationForm
-          lat={addCoords.lat}
-          lng={addCoords.lng}
-          onClose={() => setAddCoords(null)}
         />
       )}
     </div>

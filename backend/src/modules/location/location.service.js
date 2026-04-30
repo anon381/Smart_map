@@ -16,6 +16,7 @@ const createLocation = async (data, userId) => {
         longitude: parseFloat(longitude),
         imageUrl,
         tags: tags || [],
+        rating: parseFloat(data.rating) || 0,
         createdById: userId
       }
     });

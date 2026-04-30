@@ -7,9 +7,9 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import * as React from "react";
-import { QueryProvider } from "../components/QueryProvider";
 
 import appCss from "../styles.css?url";
+import LoadingOverlay from "@/components/ui/loading-overlay";
 
 function NotFoundComponent() {
   return (
@@ -62,12 +62,17 @@ export const Route = createRootRoute({
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+
   return (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body>
+        <LoadingOverlay showImmediately={pathname === "/"} />
         {children}
         <Scripts />
       </body>
@@ -77,8 +82,8 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   return (
-    <QueryProvider>
+    <div>
       <Outlet />
-    </QueryProvider>
+    </div>
   );
 }
