@@ -2,13 +2,22 @@
 
 import * as React from "react";
 
-type Props = { onFinish?: () => void; demoDuration?: number };
+type Props = {
+  onFinish?: () => void;
+  demoDuration?: number;
+  introDelayMs?: number;
+};
 
-export default function LoadingOverlay({ onFinish, demoDuration = 2200 }: Props) {
+export default function LoadingOverlay({
+  onFinish,
+  demoDuration = 2200,
+  introDelayMs = 1400,
+}: Props) {
   const [visible, setVisible] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
   const [paused, setPaused] = React.useState(false);
   const timerRef = React.useRef<number | null>(null);
+  const introTimerRef = React.useRef<number | null>(null);
 
   // add 2 seconds to existing demo duration
   const effectiveDuration = (demoDuration ?? 2200) + 2000;
@@ -24,7 +33,20 @@ export default function LoadingOverlay({ onFinish, demoDuration = 2200 }: Props)
     const isClientHome = window.location.pathname === "/";
     if (!isClientHome) return;
 
-    setVisible(true);
+    introTimerRef.current = window.setTimeout(() => {
+      setVisible(true);
+    }, introDelayMs);
+
+    return () => {
+      if (introTimerRef.current) {
+        window.clearTimeout(introTimerRef.current);
+        introTimerRef.current = null;
+      }
+    };
+  }, [mounted, effectiveDuration, introDelayMs, onFinish]);
+
+  React.useEffect(() => {
+    if (!visible) return;
 
     // lock scroll: capture current scroll and fix body position
     const scrollY = window.scrollY || window.pageYOffset || 0;
@@ -46,9 +68,7 @@ export default function LoadingOverlay({ onFinish, demoDuration = 2200 }: Props)
     };
     document.addEventListener("touchmove", touchHandler, { passive: false });
 
-    // auto-hide after effectiveDuration
     timerRef.current = window.setTimeout(() => {
-      // restore body and scroll
       document.removeEventListener("touchmove", touchHandler);
       document.body.style.overflow = prevOverflow;
       document.body.style.position = prevPosition;
@@ -74,7 +94,7 @@ export default function LoadingOverlay({ onFinish, demoDuration = 2200 }: Props)
       document.body.style.width = prevWidth;
       window.scrollTo(0, scrollY);
     };
-  }, [mounted, effectiveDuration, onFinish]);
+  }, [visible, effectiveDuration, onFinish]);
 
   if (!mounted || !visible) return null;
 
