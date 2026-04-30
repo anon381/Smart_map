@@ -1,1 +1,0 @@
-import{j as e}from"./index-DKq1K1lK.js";function x({title:s,subtitle:t,children:r}){return e.jsxs("div",{className:"space-y-5 p-6 lg:p-8",children:[e.jsxs("header",{children:[e.jsx("p",{className:"text-xs uppercase tracking-widest text-muted-foreground",children:s}),e.jsx("h1",{className:"mt-1 text-3xl font-bold text-foreground",children:t})]}),r]})}export{x as P};
