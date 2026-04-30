@@ -86,10 +86,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { QueryProvider } from "../components/QueryProvider";
+
 function RootComponent() {
   return (
-    <div>
+    <QueryProvider>
       <Outlet />
-    </div>
+    </QueryProvider>
   );
 }

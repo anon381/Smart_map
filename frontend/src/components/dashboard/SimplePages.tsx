@@ -934,16 +934,25 @@ export function SocialHub() {
 }
 
 export function SettingsView() {
+  const { user } = useDashboard();
   const [isEditingProfile, setIsEditingProfile] = useState(false);
-  const [displayName, setDisplayName] = useState("Alex Morgan");
+  const [displayName, setDisplayName] = useState(user.name);
   const [bio, setBio] = useState("Urban explorer, coffee hunter");
-  const [city, setCity] = useState("Lagos · West Region");
+  const [city, setCity] = useState(user.city || "Lagos · West Region");
   const [gpsHighAccuracy, setGpsHighAccuracy] = useState(true);
   const [aiCalibrationAssist, setAiCalibrationAssist] = useState(true);
   const [incognitoMode, setIncognitoMode] = useState(false);
   const [locationGhosting, setLocationGhosting] = useState(false);
   const [twoFactorAuth, setTwoFactorAuth] = useState(true);
   const [loginAlerts, setLoginAlerts] = useState(true);
+
+  // Sync state when user data loads
+  useEffect(() => {
+    if (user.name !== "Loading...") {
+      setDisplayName(user.name);
+      setCity(user.city || "Lagos · West Region");
+    }
+  }, [user.name, user.city]);
 
   return (
     <div>
@@ -953,7 +962,7 @@ export function SettingsView() {
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="flex items-center gap-4">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-300/30 bg-linear-to-br from-blue-500 via-indigo-500 to-cyan-500 text-2xl font-bold text-white shadow-lg shadow-blue-950/40">
-                  AM
+                  {user.initials}
                 </div>
                 <div>
                   <p className="text-xs uppercase tracking-widest text-muted-foreground">Profile</p>
@@ -1039,7 +1048,7 @@ export function SettingsView() {
                   <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
                     <div className="rounded-xl border border-border/40 bg-surface/40 p-2">
                       <p className="text-[10px] uppercase text-muted-foreground">Missions</p>
-                      <p className="mt-1 text-sm font-semibold text-foreground">142</p>
+                      <p className="mt-1 text-sm font-semibold text-foreground">{user.totalMissions}</p>
                     </div>
                     <div className="rounded-xl border border-border/40 bg-surface/40 p-2">
                       <p className="text-[10px] uppercase text-muted-foreground">Live</p>
@@ -1047,7 +1056,7 @@ export function SettingsView() {
                     </div>
                     <div className="rounded-xl border border-border/40 bg-surface/40 p-2">
                       <p className="text-[10px] uppercase text-muted-foreground">Rank</p>
-                      <p className="mt-1 text-sm font-semibold text-primary-glow">A+</p>
+                      <p className="mt-1 text-sm font-semibold text-primary-glow">{user.rank}</p>
                     </div>
                   </div>
                 </div>
@@ -1075,7 +1084,7 @@ export function SettingsView() {
                 <p className="text-sm font-semibold text-foreground">Account Security</p>
               </div>
               <div className="space-y-3">
-                <Field label="Email" value="alex@smartmap.app" />
+                <Field label="Email" value={user.email} />
                 <Toggle label="Two-Factor Authentication" on={twoFactorAuth} onToggle={() => setTwoFactorAuth((value) => !value)} />
                 <Toggle label="Login alerts" on={loginAlerts} onToggle={() => setLoginAlerts((value) => !value)} />
                 <Field label="Password" value="••••••••" hint="Last changed 12 days ago" />

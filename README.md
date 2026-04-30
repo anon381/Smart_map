@@ -1,4 +1,4 @@
-
+link to preview  = smart-map-five.vercel.app
 
 # 📄 SmartMap Project Documentation 
 
@@ -295,5 +295,5 @@ Trust Score =
 SmartMap is an advanced mapping system that integrates **RAG-based intelligent search, AI verification, and gamification** to provide accurate and engaging location services. By combining multiple data sources with AI-generated insights, the system significantly improves the reliability and usability of map-based applications.
 
 ---
-
+Here is the Live app: https://smart-map-dltg.vercel.app/
 
