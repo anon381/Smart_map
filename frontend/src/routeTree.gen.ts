@@ -18,7 +18,6 @@ import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
 import { Route as DashboardSocialRouteImport } from './routes/dashboard.social'
 import { Route as DashboardSettingsRouteImport } from './routes/dashboard.settings'
 import { Route as DashboardRewardsRouteImport } from './routes/dashboard.rewards'
-import { Route as DashboardQuizzesRouteImport } from './routes/dashboard.quizzes'
 import { Route as DashboardMissionsRouteImport } from './routes/dashboard.missions'
 import { Route as DashboardMapRouteImport } from './routes/dashboard.map'
 import { Route as DashboardLeaderboardRouteImport } from './routes/dashboard.leaderboard'
@@ -68,11 +67,6 @@ const DashboardRewardsRoute = DashboardRewardsRouteImport.update({
   path: '/rewards',
   getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardQuizzesRoute = DashboardQuizzesRouteImport.update({
-  id: '/quizzes',
-  path: '/quizzes',
-  getParentRoute: () => DashboardRoute,
-} as any)
 const DashboardMissionsRoute = DashboardMissionsRouteImport.update({
   id: '/missions',
   path: '/missions',
@@ -98,7 +92,6 @@ export interface FileRoutesByFullPath {
   '/dashboard/leaderboard': typeof DashboardLeaderboardRoute
   '/dashboard/map': typeof DashboardMapRoute
   '/dashboard/missions': typeof DashboardMissionsRoute
-  '/dashboard/quizzes': typeof DashboardQuizzesRoute
   '/dashboard/rewards': typeof DashboardRewardsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/social': typeof DashboardSocialRoute
@@ -112,7 +105,6 @@ export interface FileRoutesByTo {
   '/dashboard/leaderboard': typeof DashboardLeaderboardRoute
   '/dashboard/map': typeof DashboardMapRoute
   '/dashboard/missions': typeof DashboardMissionsRoute
-  '/dashboard/quizzes': typeof DashboardQuizzesRoute
   '/dashboard/rewards': typeof DashboardRewardsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/social': typeof DashboardSocialRoute
@@ -128,7 +120,6 @@ export interface FileRoutesById {
   '/dashboard/leaderboard': typeof DashboardLeaderboardRoute
   '/dashboard/map': typeof DashboardMapRoute
   '/dashboard/missions': typeof DashboardMissionsRoute
-  '/dashboard/quizzes': typeof DashboardQuizzesRoute
   '/dashboard/rewards': typeof DashboardRewardsRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/dashboard/social': typeof DashboardSocialRoute
@@ -145,7 +136,6 @@ export interface FileRouteTypes {
     | '/dashboard/leaderboard'
     | '/dashboard/map'
     | '/dashboard/missions'
-    | '/dashboard/quizzes'
     | '/dashboard/rewards'
     | '/dashboard/settings'
     | '/dashboard/social'
@@ -159,7 +149,6 @@ export interface FileRouteTypes {
     | '/dashboard/leaderboard'
     | '/dashboard/map'
     | '/dashboard/missions'
-    | '/dashboard/quizzes'
     | '/dashboard/rewards'
     | '/dashboard/settings'
     | '/dashboard/social'
@@ -174,7 +163,6 @@ export interface FileRouteTypes {
     | '/dashboard/leaderboard'
     | '/dashboard/map'
     | '/dashboard/missions'
-    | '/dashboard/quizzes'
     | '/dashboard/rewards'
     | '/dashboard/settings'
     | '/dashboard/social'
@@ -254,13 +242,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRewardsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/quizzes': {
-      id: '/dashboard/quizzes'
-      path: '/quizzes'
-      fullPath: '/dashboard/quizzes'
-      preLoaderRoute: typeof DashboardQuizzesRouteImport
-      parentRoute: typeof DashboardRoute
-    }
     '/dashboard/missions': {
       id: '/dashboard/missions'
       path: '/missions'
@@ -289,7 +270,6 @@ interface DashboardRouteChildren {
   DashboardLeaderboardRoute: typeof DashboardLeaderboardRoute
   DashboardMapRoute: typeof DashboardMapRoute
   DashboardMissionsRoute: typeof DashboardMissionsRoute
-  DashboardQuizzesRoute: typeof DashboardQuizzesRoute
   DashboardRewardsRoute: typeof DashboardRewardsRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   DashboardSocialRoute: typeof DashboardSocialRoute
@@ -300,7 +280,6 @@ const DashboardRouteChildren: DashboardRouteChildren = {
   DashboardLeaderboardRoute: DashboardLeaderboardRoute,
   DashboardMapRoute: DashboardMapRoute,
   DashboardMissionsRoute: DashboardMissionsRoute,
-  DashboardQuizzesRoute: DashboardQuizzesRoute,
   DashboardRewardsRoute: DashboardRewardsRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
   DashboardSocialRoute: DashboardSocialRoute,

@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { authApi } from "@/lib/api";
 import { useState } from "react";
 import { Mail, Lock, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,32 +19,19 @@ export function SignInPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-
 
   const validateEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const handleSignIn = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password)
       return setError("Please enter both email and password.");
     if (!validateEmail(email))
       return setError("Please enter a valid email address.");
-    
     setError("");
-    setIsLoading(true);
-
-    try {
-      const data = await authApi.login({ email, password });
-      localStorage.setItem("token", data.token);
-      navigate({ to: "/dashboard" });
-    } catch (err: any) {
-      setError(err.message || "Failed to sign in. Please check your credentials.");
-    } finally {
-      setIsLoading(false);
-    }
+    // UI-only demo
+    navigate({ to: "/dashboard" });
   };
-
 
   return (
     <AuthShell
@@ -97,8 +83,8 @@ export function SignInPage() {
           </p>
         )}
 
-        <Button type="submit" variant="hero" size="lg" className="w-full" disabled={isLoading}>
-          {isLoading ? "Signing in..." : "Sign in"} <ArrowRight className="w-4 h-4 ml-1" />
+        <Button type="submit" variant="hero" size="lg" className="w-full">
+          Sign in <ArrowRight className="w-4 h-4 ml-1" />
         </Button>
 
         <Button
