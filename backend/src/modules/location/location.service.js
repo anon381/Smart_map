@@ -118,10 +118,17 @@ const deleteLocation = async (id, userId, userRole) => {
 };
 
 const getNearbyLocations = async (lat, lng, radiusKm) => {
+  const pLat = parseFloat(lat);
+  const pLng = parseFloat(lng);
+  
+  if (isNaN(pLat) || isNaN(pLng)) {
+    return [];
+  }
+
   // Haversine formula via raw SQL for accurate distance calculation
   const locations = await prisma.$queryRawUnsafe(`
     SELECT id, name, description, category, latitude, longitude, "imageUrl",
-           "verificationScore", status, "createdAt",
+           "verificationScore", 3.0 as rating, status, "createdAt",
            ( 6371 * acos(
                cos(radians($1)) * cos(radians(latitude)) *
                cos(radians(longitude) - radians($2)) +

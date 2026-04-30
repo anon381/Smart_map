@@ -9,16 +9,16 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Set up disk storage
+// Use local disk storage instead of Cloudinary to ensure reliable uploads
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
+  destination: function (req, file, cb) {
+    cb(null, uploadDir)
   },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, uniqueSuffix + path.extname(file.originalname));
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
+    cb(null, 'loc_' + uniqueSuffix + path.extname(file.originalname))
   }
-});
+})
 
 // Filter rules (allow only images)
 const fileFilter = (req, file, cb) => {

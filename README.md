@@ -20,6 +20,41 @@ The system integrates:
 
 The goal is to provide **accurate, trustworthy, and intelligent location services** by combining multiple data sources with AI.
 
+## 🚀 Quick Start & How to Run
+
+To run this project locally, you will need to start three services: Backend, Frontend, and ML Engine.
+
+### 1. Setup Environment Variables
+Copy the `.env.example` file to `.env` in the root directory:
+```bash
+cp .env.example .env
+```
+Fill in the required fields (especially `DATABASE_URL` and `GEMINI_API_KEY`).
+
+### 2. Run the Backend (Node.js)
+```bash
+cd backend
+npm install
+npx prisma generate
+npm run dev
+```
+*Runs on Port 5002.*
+
+### 3. Run the ML Engine (Python)
+```bash
+cd ml-engineering
+pip install -r requirements.txt
+python main.py
+```
+*Runs on Port 5001.*
+
+### 4. Run the Frontend (React/Vite)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+*Runs on Port 5173 (or similar).*
 
 
 🎯 3. Objectives
@@ -111,10 +146,8 @@ The system retrieves data from:
 * Internal database (verified user data)
 * External services such as:
 
-  * Google Maps
-  * Gebeta Maps
-
----
+osm
+overpass 
 
 ### Step 4: Data Fusion & Ranking
 
