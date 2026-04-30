@@ -371,11 +371,6 @@ function DefaultFanCard({ item }: { item: CardStackItem }) {
               {item.description}
             </div>
           ) : null}
-          {item.ctaLabel ? (
-            <div className="inline-flex w-fit rounded-full bg-primary px-4 py-2 text-xs font-semibold uppercase tracking-widest text-primary-foreground">
-              {item.ctaLabel}
-            </div>
-          ) : null}
         </div>
       </div>
     </div>

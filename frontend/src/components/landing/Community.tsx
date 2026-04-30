@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   Crown,
@@ -11,7 +12,7 @@ import {
 const leaders = [
   {
     rank: 1,
-    name: "Alex H.",
+    name: "Yabets M.",
     xp: "12,450",
     meta: "Streak: 12 Days",
     icon: Crown,
@@ -20,7 +21,7 @@ const leaders = [
   },
   {
     rank: 2,
-    name: "Sarah M.",
+    name: "Dagim T.",
     xp: "11,200",
     meta: "Missions: 45",
     icon: Trophy,
@@ -29,7 +30,7 @@ const leaders = [
   },
   {
     rank: 3,
-    name: "David K.",
+    name: "Natnael T.",
     xp: "10,950",
     meta: "Region: Downtown",
     icon: Medal,
@@ -40,19 +41,19 @@ const leaders = [
 
 const liveActivity = [
   {
-    name: "Maya R.",
+    name: "Yohannes M.",
     text: "Found the best local spots and earned rewards every weekend!",
     badge: "Verified Explorer",
     achievement: "Hidden Gem Finder",
   },
   {
-    name: "Jordan T.",
+    name: "Yonatan K.",
     text: "The photo quiz mode turned my commute into a daily adventure.",
     badge: "Verified Explorer",
     achievement: "Speedster",
   },
   {
-    name: "Priya L.",
+    name: "Yared Z.",
     text: "I discovered three new cafés in my own neighborhood. Wild.",
     badge: "Verified Explorer",
     achievement: "Foodie",
@@ -122,10 +123,13 @@ export function Community() {
                 </motion.div>
               ))}
             </div>
-            <button className="mt-6 inline-flex items-center gap-2 text-sm text-primary hover:text-primary-glow transition-colors group">
+            <Link
+              to="/signin"
+              className="mt-6 inline-flex items-center gap-2 text-sm text-primary hover:text-primary-glow transition-colors group"
+            >
               View Full Global Ranks
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
+            </Link>
           </div>
 
           {/* Live activity */}

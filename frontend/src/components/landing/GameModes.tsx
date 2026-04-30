@@ -64,9 +64,7 @@ export function GameModes() {
             Missions Meet <span className="text-gradient">Reality</span>.
           </h2>
           <p className="mx-auto mt-5 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium text-white/90 shadow-[0_0_0_1px_rgba(255,255,255,0.04)] backdrop-blur-md">
-            <span className="text-accent font-semibold">Hover</span>
-            <span className="text-white/70">the cards to flip them</span>
-            <ArrowRight className="h-4 w-4 text-accent" />
+            <span className="text-white/90">Hover the Cards</span>
           </p>
         </div>
 
