@@ -62,13 +62,17 @@ export const Route = createRootRoute({
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
+
   return (
     <html lang="en">
       <head>
         <HeadContent />
       </head>
       <body>
-        <LoadingOverlay />
+        <LoadingOverlay showImmediately={pathname === "/"} />
         {children}
         <Scripts />
       </body>

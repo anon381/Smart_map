@@ -5,45 +5,30 @@ import * as React from "react";
 type Props = {
   onFinish?: () => void;
   demoDuration?: number;
-  introDelayMs?: number;
+  showImmediately?: boolean;
 };
 
 export default function LoadingOverlay({
   onFinish,
   demoDuration = 2200,
-  introDelayMs = 1400,
+  showImmediately = false,
 }: Props) {
-  const [visible, setVisible] = React.useState(false);
-  const [mounted, setMounted] = React.useState(false);
+  const [visible, setVisible] = React.useState(showImmediately);
   const [paused, setPaused] = React.useState(false);
   const timerRef = React.useRef<number | null>(null);
-  const introTimerRef = React.useRef<number | null>(null);
 
   // add 2 seconds to existing demo duration
   const effectiveDuration = (demoDuration ?? 2200) + 2000;
 
   React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  React.useEffect(() => {
-    if (!mounted) return;
-
     // Only show overlay on homepage
-    const isClientHome = window.location.pathname === "/";
-    if (!isClientHome) return;
+    if (!showImmediately) return;
 
-    introTimerRef.current = window.setTimeout(() => {
-      setVisible(true);
-    }, introDelayMs);
+    setVisible(true);
 
     return () => {
-      if (introTimerRef.current) {
-        window.clearTimeout(introTimerRef.current);
-        introTimerRef.current = null;
-      }
     };
-  }, [mounted, effectiveDuration, introDelayMs, onFinish]);
+  }, [showImmediately]);
 
   React.useEffect(() => {
     if (!visible) return;
@@ -96,7 +81,7 @@ export default function LoadingOverlay({
     };
   }, [visible, effectiveDuration, onFinish]);
 
-  if (!mounted || !visible) return null;
+  if (!visible) return null;
 
   return (
     <div
@@ -111,9 +96,9 @@ export default function LoadingOverlay({
 
         <div className="flex flex-col items-center justify-center gap-6 mx-auto">
           <style>{`
-            @keyframes pulseRing { 0% { transform: scale(.9); opacity: .6 } 70% { transform: scale(1.2); opacity: 0 } 100% { transform: scale(1.2); opacity: 0 } }
-            @keyframes orbit { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-            @keyframes orbitReverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+            @keyframes pulseRing { 0% { transform: scale(.92); opacity: .18 } 45% { opacity: .52 } 100% { transform: scale(1.22); opacity: 0 } }
+            @keyframes radarSweep { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+            @keyframes radarPing { 0% { transform: scale(.35); opacity: .0 } 20% { opacity: .8 } 100% { transform: scale(1.15); opacity: 0 } }
             @keyframes progress { from { width: 0%; } to { width: 100%; } }
             .orbit-path {
               transform-box: fill-box;
@@ -124,8 +109,8 @@ export default function LoadingOverlay({
           {/* Decorative pulsing backdrop */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="relative">
-              <span className="absolute inset-0 rounded-full bg-linear-to-r from-primary/30 via-accent/20 to-primary/10 blur-3xl opacity-60" />
-              <span className="absolute inset-0 rounded-full opacity-40 animate-[pulseRing_1600ms_ease-out_infinite]" />
+              <span className="absolute inset-0 rounded-full bg-linear-to-r from-emerald-400/20 via-primary/12 to-transparent blur-3xl opacity-60" />
+              <span className="absolute inset-0 rounded-full border border-emerald-300/10 animate-[pulseRing_2200ms_ease-out_infinite]" />
             </div>
           </div>
 
@@ -149,35 +134,39 @@ export default function LoadingOverlay({
                 setPaused((current) => !current);
               }}
             >
-              <div className="absolute inset-0 rounded-full border border-white/6" />
-              <div className="absolute inset-[18%] rounded-full border border-white/12" />
+              <div className="absolute inset-0 rounded-full border border-emerald-300/8 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.12)_0%,rgba(16,185,129,0.06)_18%,rgba(255,255,255,0.03)_42%,transparent_72%)] shadow-[0_0_48px_rgba(16,185,129,0.14)]" />
+              <div className="absolute inset-[14%] rounded-full border border-emerald-300/12" />
+              <div className="absolute inset-[28%] rounded-full border border-emerald-300/12" />
+              <div className="absolute inset-[42%] rounded-full border border-emerald-300/12" />
 
               <div
-                className="orbit-path absolute inset-0"
-                style={{ animation: paused ? "none" : "orbit 1.8s linear infinite" }}
+                className="orbit-path absolute left-1/2 top-1/2 h-[1px] w-[74%]"
+                style={{ animation: paused ? "none" : "radarSweep 2.6s linear infinite" }}
               >
-                <span className="absolute left-1/2 top-[6%] h-3.5 w-3.5 -translate-x-1/2 rounded-full bg-white shadow-[0_0_20px_rgba(255,255,255,0.85)]" />
+                <span className="absolute inset-y-0 right-0 w-1/2 bg-linear-to-r from-transparent via-emerald-300/75 to-transparent shadow-[0_0_22px_rgba(110,231,183,0.75)]" />
               </div>
 
               <div
-                className="orbit-path absolute inset-[18%]"
-                style={{ animation: paused ? "none" : "orbitReverse 2.4s linear infinite" }}
-              >
-                <span className="absolute right-[-2%] top-1/2 h-4 w-12 -translate-y-1/2 rounded-full bg-linear-to-r from-fuchsia-400 via-primary to-accent shadow-[0_0_22px_rgba(168,139,250,0.7)]" />
-              </div>
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background:
+                    "radial-gradient(circle at center, transparent 0 55%, rgba(16,185,129,0.18) 55.5%, transparent 56.5%)",
+                  animation: paused ? "none" : "radarPing 2.6s ease-out infinite",
+                }}
+              />
 
-              <div className="absolute inset-[34%] rounded-full bg-background/80 backdrop-blur-sm ring-1 ring-white/10" />
+              <div className="absolute inset-[34%] rounded-full bg-background/85 backdrop-blur-sm ring-1 ring-emerald-300/10 shadow-[inset_0_0_24px_rgba(16,185,129,0.10)]" />
 
-              {/* <span className="absolute bottom-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white/55">
-                {paused ? "Tap to resume" : "Tap to pause"}
-              </span> */}
+              <span className="absolute top-[18%] left-1/2 -translate-x-1/2 text-[10px] font-semibold uppercase tracking-[0.32em] text-emerald-200/75">
+                Scanning map
+              </span>
             </div>
           </button>
 
           <div className="w-full max-w-sm px-4 sm:px-6">
             <div className="h-2 overflow-hidden rounded-full bg-white/10 shadow-[0_0_0_1px_rgba(255,255,255,0.05)]">
               <div
-                className="h-full rounded-full bg-linear-to-r from-fuchsia-400 via-primary to-accent shadow-[0_0_20px_rgba(232,121,249,0.45)]"
+                className="h-full rounded-full bg-linear-to-r from-emerald-400 via-primary to-accent shadow-[0_0_20px_rgba(16,185,129,0.45)]"
                 style={{
                   width: "0%",
                   animation: `progress ${effectiveDuration}ms linear forwards`,
