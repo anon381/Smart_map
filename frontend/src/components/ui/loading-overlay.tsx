@@ -109,8 +109,8 @@ export default function LoadingOverlay({
           {/* Decorative pulsing backdrop */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="relative">
-              <span className="absolute inset-0 rounded-full bg-linear-to-r from-emerald-400/20 via-primary/12 to-transparent blur-3xl opacity-60" />
-              <span className="absolute inset-0 rounded-full border border-emerald-300/10 animate-[pulseRing_2200ms_ease-out_infinite]" />
+              <span className="absolute inset-0 rounded-full bg-linear-to-r from-sky-400/20 via-blue-500/12 to-transparent blur-3xl opacity-60" />
+              <span className="absolute inset-0 rounded-full border border-sky-300/10 animate-[pulseRing_2200ms_ease-out_infinite]" />
             </div>
           </div>
 
@@ -134,30 +134,31 @@ export default function LoadingOverlay({
                 setPaused((current) => !current);
               }}
             >
-              <div className="absolute inset-0 rounded-full border border-emerald-300/8 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.12)_0%,rgba(16,185,129,0.06)_18%,rgba(255,255,255,0.03)_42%,transparent_72%)] shadow-[0_0_48px_rgba(16,185,129,0.14)]" />
-              <div className="absolute inset-[14%] rounded-full border border-emerald-300/12" />
-              <div className="absolute inset-[28%] rounded-full border border-emerald-300/12" />
-              <div className="absolute inset-[42%] rounded-full border border-emerald-300/12" />
+              <div className="absolute inset-0 rounded-full border border-sky-300/8 bg-[radial-gradient(circle_at_center,rgba(56,189,248,0.12)_0%,rgba(37,99,235,0.06)_18%,rgba(255,255,255,0.03)_42%,transparent_72%)] shadow-[0_0_48px_rgba(59,130,246,0.14)]" />
+              <div className="absolute inset-[14%] rounded-full border border-sky-300/12" />
+              <div className="absolute inset-[28%] rounded-full border border-sky-300/12" />
+              <div className="absolute inset-[42%] rounded-full border border-sky-300/12" />
 
               <div
                 className="orbit-path absolute left-1/2 top-1/2 h-[1px] w-[74%]"
                 style={{ animation: paused ? "none" : "radarSweep 2.6s linear infinite" }}
               >
-                <span className="absolute inset-y-0 right-0 w-1/2 bg-linear-to-r from-transparent via-emerald-300/75 to-transparent shadow-[0_0_22px_rgba(110,231,183,0.75)]" />
+                <span className="absolute inset-y-0 right-0 w-1/2 bg-linear-to-r from-transparent via-sky-300/80 to-transparent shadow-[0_0_22px_rgba(96,165,250,0.8)]" />
+                <span className="absolute inset-y-0 left-0 w-1/2 bg-linear-to-l from-transparent via-sky-300/55 to-transparent shadow-[0_0_18px_rgba(96,165,250,0.55)]" />
               </div>
 
               <div
                 className="absolute inset-0 rounded-full"
                 style={{
                   background:
-                    "radial-gradient(circle at center, transparent 0 55%, rgba(16,185,129,0.18) 55.5%, transparent 56.5%)",
+                    "radial-gradient(circle at center, transparent 0 55%, rgba(59,130,246,0.18) 55.5%, transparent 56.5%)",
                   animation: paused ? "none" : "radarPing 2.6s ease-out infinite",
                 }}
               />
 
-              <div className="absolute inset-[34%] rounded-full bg-background/85 backdrop-blur-sm ring-1 ring-emerald-300/10 shadow-[inset_0_0_24px_rgba(16,185,129,0.10)]" />
+              <div className="absolute inset-[34%] rounded-full bg-background/85 backdrop-blur-sm ring-1 ring-sky-300/10 shadow-[inset_0_0_24px_rgba(59,130,246,0.10)]" />
 
-              <span className="absolute top-[18%] left-1/2 -translate-x-1/2 text-[10px] font-semibold uppercase tracking-[0.32em] text-emerald-200/75">
+              <span className="absolute top-[18%] left-1/2 -translate-x-1/2 text-[10px] font-semibold uppercase tracking-[0.32em] text-sky-200/75">
                 Scanning map
               </span>
             </div>
@@ -166,7 +167,7 @@ export default function LoadingOverlay({
           <div className="w-full max-w-sm px-4 sm:px-6">
             <div className="h-2 overflow-hidden rounded-full bg-white/10 shadow-[0_0_0_1px_rgba(255,255,255,0.05)]">
               <div
-                className="h-full rounded-full bg-linear-to-r from-emerald-400 via-primary to-accent shadow-[0_0_20px_rgba(16,185,129,0.45)]"
+                className="h-full rounded-full bg-linear-to-r from-sky-400 via-blue-500 to-cyan-400 shadow-[0_0_20px_rgba(59,130,246,0.45)]"
                 style={{
                   width: "0%",
                   animation: `progress ${effectiveDuration}ms linear forwards`,
