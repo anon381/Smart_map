@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { MapPin, Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function Hero() {
@@ -69,15 +69,6 @@ export function Hero() {
           </Button>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 1 }}
-          className="mt-20 flex items-center justify-center gap-2 text-sm text-muted-foreground"
-        >
-          <MapPin className="w-4 h-4 text-primary animate-pulse" />
-          <span>Live in 24 cities · 12,000+ active explorers</span>
-        </motion.div>
       </div>
     </section>
   );
