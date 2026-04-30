@@ -461,12 +461,7 @@ export function MapView() {
   const searchMutation = useSearch();
   const saveRouteMutation = useSaveRoute();
 
-
   const cat = categories.find((c) => c.id === activeCategory);
-  const [target] = useState<{ name: string; distance: number } | null>({
-    name: samplePoints[0].name,
-    distance: 250,
-  });
   const [unlocked, setUnlocked] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [minimized, setMinimized] = useState(false);
@@ -791,12 +786,8 @@ export function MapView() {
             </div>
           )}
         </AnimatePresence>
+      </div>
 
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, []);
-
-  return (
-    <div className="relative h-[calc(100vh-56px)] w-full lg:h-screen">
       <MapContainer
         center={effectivePos.lat && effectivePos.lng ? [effectivePos.lat, effectivePos.lng] : [8.9806, 38.7578]}
         zoom={14}
