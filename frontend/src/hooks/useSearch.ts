@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/api";
 
-const ML_ENGINE_URL = "http://localhost:5001";
 
 export type RagResult = {
   name: string;
@@ -33,33 +33,6 @@ export type RagResponse = {
   };
 };
 
-export type RagResult = {
-  name: string;
-  category?: string;
-  distance?: number;
-  trust_score?: number;
-  source?: string;
-  osm_url?: string;
-  verification_status?: string;
-};
-
-export type RagResponse = {
-  query: string;
-  answer: string;
-  confidence: number;
-  intent?: {
-    category?: string | null;
-    filters?: string[];
-    location_hint?: string | null;
-  };
-  best_place?: RagResult | null;
-  total_results: number;
-  sources: {
-    database: RagResult[];
-    osm: RagResult[];
-    overpass: RagResult[];
-  };
-};
 
 type SearchParams = {
   query: string;

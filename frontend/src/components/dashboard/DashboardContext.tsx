@@ -21,6 +21,7 @@ export type ViewId =
   | "settings";
 
 type User = {
+  email: string;
   name: string;
   initials: string;
   rank: "Bronze" | "Silver" | "Gold" | "Diamond";
@@ -60,6 +61,7 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   };
 
   const user: User = {
+    email: userData?.email || "loading@example.com",
     name: userData?.name || "Loading...",
     initials: userData?.name?.split(" ").map((n: string) => n[0]).join("") || "??",
     rank: "Gold", // These could also be fetched from backend if available

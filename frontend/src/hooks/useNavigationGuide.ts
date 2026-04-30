@@ -17,7 +17,8 @@ export function useNavigationGuide(
     queryFn: async () => {
       if (!origin || !destination) return null;
       
-      const url = `http://localhost:5001/navigation/guide?lat=${origin.lat}&lng=${origin.lng}&dest_lat=${destination.lat}&dest_lng=${destination.lng}`;
+      const mlBaseUrl = import.meta.env.VITE_ML_URL || (import.meta.env.PROD ? "https://smartmap-ml.onrender.com" : "http://localhost:5001");
+      const url = `${mlBaseUrl}/navigation/guide?lat=${origin.lat}&lng=${origin.lng}&dest_lat=${destination.lat}&dest_lng=${destination.lng}`;
       
       const response = await fetch(url);
       if (!response.ok) {

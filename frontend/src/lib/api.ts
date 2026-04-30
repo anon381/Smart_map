@@ -1,4 +1,4 @@
-const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5002/api";
+const BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "https://smartmap-api.onrender.com/api" : "http://localhost:5002/api");
 
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   const token = localStorage.getItem("token");
