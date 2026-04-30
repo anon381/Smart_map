@@ -15,7 +15,7 @@ import { useSearch, type RagResponse } from "@/hooks/useSearch";
 import { useRoute, useSaveRoute } from "@/hooks/useRoute";
 import { useNavigationGuide } from "@/hooks/useNavigationGuide";
 import { useRobotPhysics } from "@/hooks/useRobotPhysics";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { apiRequest } from "@/lib/api";
 
 type NearbyPlace = {
@@ -462,6 +462,7 @@ export function MapView() {
   const saveRouteMutation = useSaveRoute();
 
   const cat = categories.find((c) => c.id === activeCategory);
+  const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
   const [unlocked, setUnlocked] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [minimized, setMinimized] = useState(false);
