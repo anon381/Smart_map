@@ -744,7 +744,7 @@ export function MapView() {
                             if (r.lat && r.lng) {
                               setFlyToPos([r.lat, r.lng]);
                               setFollow(false);
-                              if (r.source === 'database') {
+                              if (r.source === 'database' && r.id) {
                                 setSelectedTargetId(r.id);
                                 setSelectedSearchPin(null);
                               } else {
@@ -904,7 +904,7 @@ export function MapView() {
             </Popup>
           </Marker>
         ))}
-        {position && (
+        {effectivePos.lat != null && effectivePos.lng != null && (
           <>
             <Marker position={[effectivePos.lat, effectivePos.lng]} icon={userLocationIcon}>
               <Popup>
@@ -956,7 +956,10 @@ export function MapView() {
             )}
             {routeData?.path && (
               <Polyline 
-                positions={routeData.path.map(p => [p.lat, p.lng])} 
+                positions={routeData.path
+                  .filter(p => p.lat !== undefined && p.lng !== undefined && !isNaN(p.lat) && !isNaN(p.lng))
+                  .map(p => [p.lat, p.lng]) as [number, number][]
+                } 
                 color="#63a0ff" 
                 weight={5}
                 opacity={0.7}
@@ -973,7 +976,7 @@ export function MapView() {
       <div className="pointer-events-none absolute left-4 top-4 z-1000 flex items-center gap-2 rounded-full border border-border/60 bg-black/70 px-3 py-2 text-[11px] text-foreground backdrop-blur sm:px-4 sm:text-xs">
         <MapPin className="h-3.5 w-3.5 text-primary-glow" />
         <span className="font-medium">{nearbyLabel}</span>
-        <span className="text-muted-foreground">· {samplePoints.length} pins</span>
+        <span className="text-muted-foreground">· {locations.length} pins</span>
       </div>
 
       {resultsMinimized ? (
@@ -1024,8 +1027,8 @@ export function MapView() {
                     </div>
                     <span className="text-[10px] text-primary-glow">{place.distance}m</span>
                   </div>
-                  <p className="mt-2 text-[11px] text-muted-foreground sm:text-xs">{place.note}</p>
-                  <div className="mt-2 text-[10px] text-muted-foreground">{place.status}</div>
+                  <p className="mt-2 text-[11px] text-muted-foreground sm:text-xs">{(place as any).note}</p>
+                  <div className="mt-2 text-[10px] text-muted-foreground">{(place as any).status}</div>
                 </div>
               );
             })}
