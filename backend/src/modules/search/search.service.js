@@ -87,19 +87,29 @@ User asks: ${query}`;
 const ragSearch = async (query, userLat, userLng) => {
   const nearby = await getNearbyFromDB(userLat, userLng);
 
-  const mlEngineUrl = process.env.ML_ENGINE_URL || 'http://localhost:5001';
-  const mlResponse = await fetch(`${mlEngineUrl}/rag`, {
-    method: 'POST',
-    headers: { 'accept': 'application/json', 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      query,
-      location: { lat: parseFloat(userLat) || 8.9806, lng: parseFloat(userLng) || 38.7578 },
-      fast_mode: false,
-      locations_list: nearby
-    })
-  });
+  const mlEngineUrl = (process.env.ML_ENGINE_URL || 'http://localhost:5001').replace(/\/$/, '');
+  
+  let mlResponse;
+  try {
+    mlResponse = await fetch(`${mlEngineUrl}/rag`, {
+      method: 'POST',
+      headers: { 'accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        query,
+        location: { lat: parseFloat(userLat) || 8.9806, lng: parseFloat(userLng) || 38.7578 },
+        fast_mode: false,
+        locations_list: nearby
+      })
+    });
+  } catch (err) {
+    console.error("ML Engine Fetch Error:", err);
+    throw new Error('ML Engine Unreachable: ' + err.message);
+  }
 
-  if (!mlResponse.ok) throw new Error('ML Engine Unreachable');
+  if (!mlResponse.ok) {
+    console.error(`ML Engine returned HTTP ${mlResponse.status}`);
+    throw new Error(`ML Engine Error: HTTP ${mlResponse.status}`);
+  }
 
   const data = await mlResponse.json();
 
