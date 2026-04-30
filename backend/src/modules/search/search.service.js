@@ -82,7 +82,8 @@ User asks: ${query}`;
 const ragSearch = async (query, userLat, userLng) => {
   const nearby = await getNearbyFromDB(userLat, userLng);
 
-  const mlResponse = await fetch('http://localhost:5001/rag', {
+  const mlEngineUrl = process.env.ML_ENGINE_URL || 'http://localhost:5001';
+  const mlResponse = await fetch(`${mlEngineUrl}/rag`, {
     method: 'POST',
     headers: { 'accept': 'application/json', 'Content-Type': 'application/json' },
     body: JSON.stringify({

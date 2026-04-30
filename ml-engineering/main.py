@@ -43,6 +43,7 @@ class QueryRequest(BaseModel):
     query: str
     location: Optional[Dict[str, float]] = None
     fast_mode: bool = True
+    locations_list: List[Dict[str, Any]] = []
 
 class QuizSubmitRequest(BaseModel):
     location_id: str
@@ -122,28 +123,40 @@ async def rag_query(data: QueryRequest):
     return rag_pipeline(
         data.query, 
         location=data.location, 
-        fast_mode=data.fast_mode
+        fast_mode=data.fast_mode,
+        locations_list=data.locations_list
     )
 
 # ── Mission & Game Engine Endpoints ─────────────────────────────────────────
 
-@app.get("/mission/next")
-async def next_mission(lat: float, lng: float):
+class MissionRequest(BaseModel):
+    lat: float
+    lng: float
+    locations_list: List[Dict[str, Any]] = []
+
+class QuizRequest(BaseModel):
+    lat: float
+    lng: float
+    locations_list: List[Dict[str, Any]] = []
+    mode: str = "choice"
+
+@app.post("/mission/next")
+async def next_mission(req: MissionRequest):
     """Calculates the best verification mission for the user based on distance and trust needs."""
-    return get_next_mission(lat, lng)
+    return get_next_mission(req.lat, req.lng)
 
-@app.get("/mission/persona")
-async def robot_persona(lat: float, lng: float):
+@app.post("/mission/persona")
+async def robot_persona(req: MissionRequest):
     """Triggers Gemini-powered dynamic dialogue for the Robotic Car persona."""
-    return get_gemini_persona_chat(lat, lng)
+    return get_gemini_persona_chat(req.lat, req.lng)
 
-@app.get("/quiz/generate")
-async def quiz_generate(mode: str = "choice"):
+@app.post("/quiz/generate")
+async def quiz_generate(req: QuizRequest):
     """
     Generates a Map Verification Quiz.
     Modes: 'choice' (MCQ) or 'binary' (True/False)
     """
-    return generate_quiz(mode=mode)
+    return generate_quiz(mode=req.mode, current_lat=req.lat, current_lng=req.lng)
 
 @app.post("/quiz/submit")
 async def quiz_submit(request: QuizSubmitRequest):

@@ -1,6 +1,8 @@
 const missionService = require('./mission.service');
 const prisma = require('../../prisma/client');
 
+const mlEngineUrl = process.env.ML_ENGINE_URL || 'http://localhost:5001';
+
 const getAllMissions = async (req, res, next) => {
   try {
     const missions = await missionService.getAllMissions();
@@ -124,7 +126,7 @@ const getRecommendedMission = async (req, res, next) => {
     }));
 
     // 2. Ask ML Engine to pick the best mission
-    const mlResponse = await fetch(`http://localhost:5001/mission/next`, {
+    const mlResponse = await fetch(`${mlEngineUrl}/mission/next`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -133,6 +135,10 @@ const getRecommendedMission = async (req, res, next) => {
         locations_list: mappedLocations 
       })
     });
+
+    if (!mlResponse.ok) {
+      throw new Error(`ML Engine error: ${mlResponse.status} ${mlResponse.statusText}`);
+    }
 
     const recommendation = await mlResponse.json();
     res.json(recommendation);
@@ -204,7 +210,7 @@ const getQuiz = async (req, res, next) => {
     const randomMode = Math.random() > 0.5 ? 'choice' : 'binary';
 
     // 4. Ask ML Engine to generate a quiz
-    const mlResponse = await fetch(`http://localhost:5001/quiz/generate`, {
+    const mlResponse = await fetch(`${mlEngineUrl}/quiz/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -214,6 +220,10 @@ const getQuiz = async (req, res, next) => {
         mode: randomMode
       })
     });
+
+    if (!mlResponse.ok) {
+      throw new Error(`ML Engine error: ${mlResponse.status} ${mlResponse.statusText}`);
+    }
 
     const quiz = await mlResponse.json();
     res.json(quiz);
@@ -241,7 +251,7 @@ const getPersonaChat = async (req, res, next) => {
     }));
 
     // 2. Ask ML Engine for persona dialogue
-    const mlResponse = await fetch(`http://localhost:5001/mission/persona`, {
+    const mlResponse = await fetch(`${mlEngineUrl}/mission/persona`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
@@ -250,6 +260,10 @@ const getPersonaChat = async (req, res, next) => {
         locations_list: mappedLocations 
       })
     });
+
+    if (!mlResponse.ok) {
+      throw new Error(`ML Engine error: ${mlResponse.status} ${mlResponse.statusText}`);
+    }
 
     const chat = await mlResponse.json();
     res.json(chat);
@@ -265,7 +279,7 @@ const submitQuizAnswer = async (req, res, next) => {
     const userId = req.user.userId;
 
     // Forward to ML engine for weighted scoring
-    const mlResponse = await fetch(`http://localhost:5001/quiz/submit`, {
+    const mlResponse = await fetch(`${mlEngineUrl}/quiz/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -274,6 +288,10 @@ const submitQuizAnswer = async (req, res, next) => {
         user_id: userId
       })
     });
+
+    if (!mlResponse.ok) {
+      throw new Error(`ML Engine error: ${mlResponse.status} ${mlResponse.statusText}`);
+    }
 
     const result = await mlResponse.json();
 

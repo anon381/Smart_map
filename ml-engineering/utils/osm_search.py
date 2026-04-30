@@ -26,7 +26,7 @@ def osm_search(query, lat=None, lng=None):
 
     headers = {"User-Agent": "SmartMap-RAG"}
 
-    res = requests.get(url, params=params, headers=headers)
+    res = requests.get(url, params=params, headers=headers, timeout=5)
     data = res.json()
 
     return [

@@ -3,10 +3,16 @@ const locationService = require('./location.service');
 const createLocation = async (req, res, next) => {
   try {
     const userId = req.user.userId;
+    req.body = req.body || {};
     
     // Map frontend 'tip' naming convention to backend 'description'
     if (req.body.tip && !req.body.description) {
       req.body.description = req.body.tip;
+    }
+    
+    if (req.file) {
+      // Use relative URL for local uploads
+      req.body.imageUrl = `/uploads/${req.file.filename}`;
     }
     
     const location = await locationService.createLocation(req.body, userId);
