@@ -1123,6 +1123,42 @@ export function MapView() {
           }}
         />
       )}
+
+      {addCoords && (
+        <AddLocationForm
+          lat={addCoords.lat}
+          lng={addCoords.lng}
+          onClose={() => setAddCoords(null)}
+        />
+      )}
+
+      {/* Add Place + Save Route floating buttons */}
+      <div className="absolute right-2 bottom-24 z-1000 flex flex-col gap-2 sm:right-4">
+        <button
+          onClick={() => setIsAddMode(!isAddMode)}
+          className={`flex items-center gap-1.5 rounded-full border px-3 py-2 text-[11px] font-semibold backdrop-blur transition sm:px-4 sm:text-xs ${
+            isAddMode
+              ? "border-primary/50 bg-primary/20 text-primary-glow shadow-glow animate-pulse"
+              : "border-border/60 bg-black/70 text-muted-foreground hover:text-foreground hover:border-primary/40"
+          }`}
+          title="Add a new location"
+        >
+          <MapPinPlus className="h-4 w-4" />
+          {isAddMode ? "Cancel" : "Add Place"}
+        </button>
+
+        {routeData && target && (
+          <button
+            onClick={handleSaveRoute}
+            disabled={saveRouteMutation.isPending}
+            className="flex items-center gap-1.5 rounded-full border border-border/60 bg-black/70 px-3 py-2 text-[11px] text-muted-foreground backdrop-blur hover:text-foreground hover:border-primary/40 sm:px-4 sm:text-xs disabled:opacity-50"
+            title="Save this route"
+          >
+            <Bookmark className="h-3.5 w-3.5" />
+            {saveRouteMutation.isPending ? "Saving..." : "Save Route"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

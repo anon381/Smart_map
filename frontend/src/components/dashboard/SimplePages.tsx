@@ -234,7 +234,6 @@ const missionFilters = [
     icon: Target,
     description: "Every verified mission",
     accent: "text-primary-glow",
-    count: missions.length,
   },
   {
     id: "food",
@@ -242,7 +241,6 @@ const missionFilters = [
     icon: Coffee,
     description: "Food & Drinks missions",
     accent: "text-orange-300",
-    count: missions.filter((m) => m.cat === "Food & Drinks").length,
   },
   {
     id: "transport",
@@ -250,7 +248,6 @@ const missionFilters = [
     icon: Bus,
     description: "Transit and mobility spots",
     accent: "text-sky-300",
-    count: missions.filter((m) => m.cat === "Transport").length,
   },
   {
     id: "culture",
@@ -258,7 +255,6 @@ const missionFilters = [
     icon: Church,
     description: "Heritage and faith locations",
     accent: "text-amber-200",
-    count: missions.filter((m) => m.cat === "Culture & Faith").length,
   },
   {
     id: "hidden",
@@ -266,7 +262,6 @@ const missionFilters = [
     icon: Sparkles,
     description: "Low-visibility discoveries",
     accent: "text-fuchsia-300",
-    count: missions.filter((m) => m.tags.includes("Hidden Gem") || m.cat === "Hidden Gems").length,
   },
   {
     id: "high-value",
@@ -274,7 +269,6 @@ const missionFilters = [
     icon: BadgePercent,
     description: "Top scoring captures",
     accent: "text-emerald-300",
-    count: missions.filter((m) => m.tags.includes("High-Value") || m.cat === "High-Value").length,
   },
   {
     id: "week",
@@ -282,45 +276,67 @@ const missionFilters = [
     icon: MessageSquareText,
     description: "Fresh missions from this week",
     accent: "text-sky-300",
-    count: missions.filter((m) => m.when === "This week" || m.when === "This week" || m.when === "This week").length,
   },
 ];
 
-const filterMatch: Record<string, (mission: (typeof missions)[number]) => boolean> = {
+const filterMatch: Record<string, (mission: any) => boolean> = {
   all: () => true,
-  food: (mission) => mission.cat === "Food & Drinks",
-  transport: (mission) => mission.cat === "Transport",
-  culture: (mission) => mission.cat === "Culture & Faith",
-  hidden: (mission) => mission.tags.includes("Hidden Gem") || mission.cat === "Hidden Gems",
-  "high-value": (mission) => mission.tags.includes("High-Value") || mission.cat === "High-Value",
+  food: (mission) => mission.cat === "Food & Drinks" || mission.cat === "food",
+  transport: (mission) => mission.cat === "Transport" || mission.cat === "transport",
+  culture: (mission) => mission.cat === "Culture & Faith" || mission.cat === "culture",
+  hidden: (mission) => mission.tags.includes("Hidden Gem") || mission.cat === "Hidden Gems" || mission.cat === "hidden",
+  "high-value": (mission) => mission.tags.includes("High-Value") || mission.cat === "High-Value" || mission.status === "APPROVED",
   week: (mission) => mission.when === "This week" || mission.when === "1w ago" || mission.when === "2h ago",
 };
 
 export function MissionLog() {
   const [activeFilter, setActiveFilter] = useState("all");
+  const { missions = [], stats: backendStats, isLoading } = useMissions();
 
   const filteredMissions = useMemo(
     () => missions.filter(filterMatch[activeFilter] ?? filterMatch.all),
-    [activeFilter],
+    [activeFilter, missions],
   );
+
+  const filterCounts = useMemo(() => {
+    return {
+      all: missions.length,
+      food: missions.filter((m: any) => filterMatch.food(m)).length,
+      transport: missions.filter((m: any) => filterMatch.transport(m)).length,
+      culture: missions.filter((m: any) => filterMatch.culture(m)).length,
+      hidden: missions.filter((m: any) => filterMatch.hidden(m)).length,
+      "high-value": missions.filter((m: any) => filterMatch["high-value"](m)).length,
+      week: missions.filter((m: any) => filterMatch.week(m)).length,
+    };
+  }, [missions]);
 
   const stats = useMemo(() => {
     const visible = filteredMissions.length;
-    const xp = filteredMissions.reduce((sum, mission) => sum + mission.xp, 0);
-    const coins = filteredMissions.reduce((sum, mission) => sum + mission.coins, 0);
-    const avgAi = visible === 0 ? 0 : filteredMissions.reduce((sum, mission) => sum + mission.ai, 0) / visible;
+    const xp = filteredMissions.reduce((sum: number, mission: any) => sum + (mission.xp || 0), 0);
+    const coins = filteredMissions.reduce((sum: number, mission: any) => sum + (mission.coins || 0), 0);
+    const avgAi = visible === 0 ? 0 : filteredMissions.reduce((sum: number, mission: any) => sum + (mission.ai || 0), 0) / visible;
 
     return { visible, xp, coins, avgAi };
   }, [filteredMissions]);
+
+  if (isLoading) {
+    return (
+      <Wrap title="Mission Log" subtitle="Verified captures · AI confidence visible">
+        <div className="flex h-64 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      </Wrap>
+    );
+  }
 
   return (
     <div>
       <Wrap title="Mission Log" subtitle="Verified captures · AI confidence visible">
         <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-6">
-          <MiniStat icon={CheckCircle2} label="Verified" value="142" tint="text-success" />
-          <MiniStat icon={Flame} label="This Week" value="9" tint="text-orange-300" />
-          <MiniStat icon={Star} label="High-Value" value="27" tint="text-amber-300" />
-          <MiniStat icon={ShieldCheck} label="Avg AI Trust" value="98.4%" tint="text-primary-glow" />
+          <MiniStat icon={CheckCircle2} label="Verified" value={String(backendStats?.totalVerified || 0)} tint="text-success" />
+          <MiniStat icon={Flame} label="Pending" value={String(backendStats?.totalPending || 0)} tint="text-orange-300" />
+          <MiniStat icon={Star} label="Goal" value={String(backendStats?.weeklyGoal || 10)} tint="text-amber-300" />
+          <MiniStat icon={ShieldCheck} label="Avg AI Trust" value={`${backendStats?.avgTrust || 0}%`} tint="text-primary-glow" />
           <MiniStat icon={Target} label="Visible Cards" value={String(stats.visible)} tint="text-sky-300" />
           <MiniStat icon={BadgePercent} label="Mission XP" value={stats.xp.toLocaleString()} tint="text-emerald-300" />
         </div>
@@ -340,6 +356,7 @@ export function MissionLog() {
             {missionFilters.map((filter) => {
               const Icon = filter.icon;
               const active = activeFilter === filter.id;
+              const count = filterCounts[filter.id as keyof typeof filterCounts] || 0;
               return (
                 <button
                   key={filter.id}
@@ -359,7 +376,7 @@ export function MissionLog() {
                       <p className="mt-1 text-xs text-muted-foreground">{filter.description}</p>
                     </div>
                     <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${active ? "bg-primary text-primary-foreground" : "bg-black/40 text-muted-foreground"}`}>
-                      {String(filter.count).padStart(2, "0")}
+                      {String(count).padStart(2, "0")}
                     </span>
                   </div>
                 </button>
@@ -386,18 +403,21 @@ export function MissionLog() {
         </div>
 
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredMissions.map((m) => {
-            const Icon = m.icon;
+          {filteredMissions.map((m: any) => {
+            const Icon = Coffee; // Generic fallback since DB doesn't store icon references
             return (
               <article
                 key={m.id}
                 className="group overflow-hidden rounded-2xl border border-border/60 bg-gradient-card shadow-elegant transition-all hover:-translate-y-1 hover:border-primary/50 hover:shadow-glow"
               >
-                <div className={`relative aspect-video bg-linear-to-br ${m.photo}`}>
+                <div className={`relative aspect-video bg-linear-to-br ${m.photo.startsWith('from') ? m.photo : ''}`}>
+                  {!m.photo.startsWith('from') && (
+                    <img src={m.photo} alt={m.name} className="absolute inset-0 h-full w-full object-cover opacity-60" />
+                  )}
                   <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[10px] uppercase tracking-widest text-foreground backdrop-blur">
                     <Icon className="h-3 w-3 text-primary-glow" /> {m.cat}
                   </div>
-                  <div className="absolute right-3 top-3 rounded-full bg-success/20 px-2 py-1 text-[10px] font-mono text-success backdrop-blur">
+                  <div className={`absolute right-3 top-3 rounded-full px-2 py-1 text-[10px] font-mono backdrop-blur ${m.status === 'APPROVED' ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'}`}>
                     AI {m.ai}%
                   </div>
                   <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
@@ -414,10 +434,10 @@ export function MissionLog() {
                   <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{m.tip}</p>
 
                   <div className="mt-3 flex flex-wrap gap-1">
-                    {m.tags.map((t) => (
+                    {m.tags?.map((t: string) => (
                       <span
                         key={t}
-                        className="rounded-md border border-border/60 bg-surface/40 px-1.5 py-0.5 text-[10px] text-muted-foreground"
+                        className={`rounded-md border px-1.5 py-0.5 text-[10px] ${t === 'APPROVED' ? 'bg-success/10 text-success border-success/30' : 'bg-surface/40 text-muted-foreground border-border/60'}`}
                       >
                         {t}
                       </span>
