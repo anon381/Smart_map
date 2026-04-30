@@ -65,6 +65,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
   const pathname = useRouterState({
     select: (state) => state.location.pathname,
   });
+  const hasMountedRef = React.useRef(false);
+  const showHomeLoader = pathname === "/" && !hasMountedRef.current;
+
+  React.useEffect(() => {
+    hasMountedRef.current = true;
+  }, []);
 
   return (
     <html lang="en">
@@ -72,7 +78,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        <LoadingOverlay showImmediately={pathname === "/"} />
+        {showHomeLoader ? <LoadingOverlay showImmediately /> : null}
         {children}
         <Scripts />
       </body>

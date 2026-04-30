@@ -4,6 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
+    "predev": "rm -rf node_modules/.vite",
     "dev": "node ./node_modules/vite/bin/vite.js dev",
     "build": "node ./node_modules/vite/bin/vite.js build",
     "vercel-build": "node ./node_modules/vite/bin/vite.js build",
