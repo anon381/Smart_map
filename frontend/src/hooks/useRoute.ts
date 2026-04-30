@@ -25,13 +25,38 @@ export function useRoute(origin: RoutePoint | null, destination: RoutePoint | nu
     queryKey: ["route", origin, destination],
     queryFn: async () => {
       if (!origin || !destination) return null;
+      
+      try {
+        // 1. Try direct browser OSRM to bypass Render server IP blocks
+        const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${origin.lng},${origin.lat};${destination.lng},${destination.lat}?overview=full&geometries=geojson&steps=true`;
+        const res = await fetch(osrmUrl);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.code === 'Ok' && data.routes?.length > 0) {
+            const route = data.routes[0];
+            return {
+              status: "OK",
+              estimatedDistanceKm: parseFloat((route.distance / 1000).toFixed(2)),
+              estimatedTimeMin: Math.round(route.duration / 60),
+              path: route.geometry.coordinates.map((coord: any) => ({
+                lat: coord[1],
+                lng: coord[0]
+              })),
+              summary: route.legs[0]?.summary || "Main Road",
+            } as RouteResponse;
+          }
+        }
+      } catch (err) {
+        console.warn("Direct OSRM fetch failed, falling back to backend...", err);
+      }
+
+      // 2. Fallback to backend API
       try {
         return await apiRequest(
           `/navigation/route?originLat=${origin.lat}&originLng=${origin.lng}&destinationLat=${destination.lat}&destinationLng=${destination.lng}`
         ) as Promise<RouteResponse>;
       } catch (error) {
         console.warn("Routing API failed, using deterministic mock logic.");
-        // Simulated Path Logic
         return {
           status: "success",
           summary: "Via Central Ave",
