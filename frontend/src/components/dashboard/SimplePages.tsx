@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
+import { motion, AnimatePresence } from "framer-motion";
 import { useDashboard } from "./DashboardContext";
 import {
+  X,
   Trophy,
   Crown,
   Medal,
@@ -291,6 +293,7 @@ const filterMatch: Record<string, (mission: any) => boolean> = {
 
 export function MissionLog() {
   const [activeFilter, setActiveFilter] = useState("all");
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const { missions = [], stats: backendStats, isLoading } = useMissions();
 
   const filteredMissions = useMemo(
@@ -412,7 +415,12 @@ export function MissionLog() {
               >
                 <div className={`relative aspect-video bg-linear-to-br ${m.photo.startsWith('from') ? m.photo : ''}`}>
                   {!m.photo.startsWith('from') && (
-                    <img src={m.photo} alt={m.name} className="absolute inset-0 h-full w-full object-cover opacity-60" />
+                    <img 
+                      src={m.photo} 
+                      alt={m.name} 
+                      className="absolute inset-0 h-full w-full object-cover opacity-60 cursor-pointer hover:opacity-100 transition-opacity" 
+                      onClick={() => setSelectedImage(m.photo)}
+                    />
                   )}
                   <div className="absolute left-3 top-3 flex items-center gap-1.5 rounded-full bg-black/60 px-2.5 py-1 text-[10px] uppercase tracking-widest text-foreground backdrop-blur">
                     <Icon className="h-3 w-3 text-primary-glow" /> {m.cat}
@@ -467,6 +475,33 @@ export function MissionLog() {
           </div>
         )}
       </Wrap>
+
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSelectedImage(null)}
+            className="fixed inset-0 z-[5000] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm cursor-zoom-out"
+          >
+            <motion.img 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              src={selectedImage} 
+              alt="Mission Capture"
+              className="max-h-[90vh] max-w-[90vw] rounded-2xl object-contain shadow-glow border border-primary/20"
+            />
+            <button 
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-6 right-6 rounded-full bg-black/50 p-2 text-white hover:bg-white/20 transition-colors border border-white/20 backdrop-blur-md"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
