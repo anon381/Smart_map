@@ -10,8 +10,15 @@ const calculateRoute = async (originLat, originLng, destinationLat, destinationL
     const coords = `${originLng},${originLat};${destinationLng},${destinationLat}`;
     const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true`;
 
-    const response = await fetch(url);
-    if (!response.ok) throw new Error('OSRM service unreachable');
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'SmartMap/1.0 (https://smart-map-dltg.vercel.app/)'
+      }
+    });
+    if (!response.ok) {
+      console.error(`OSRM returned ${response.status}`);
+      throw new Error('OSRM service unreachable');
+    }
 
     const data = await response.json();
 
@@ -41,19 +48,20 @@ const calculateRoute = async (originLat, originLng, destinationLat, destinationL
     
     const distanceEstimate = Math.sqrt(
       Math.pow(originLat - destinationLat, 2) + Math.pow(originLng - destinationLng, 2)
-    ) * 111.0; 
+    ) * 111.0 * 1.4; // Multiply by 1.4 to approximate "Manhattan distance" (L-shape)
 
     return {
       status: 'DEGRADED',
       warning: 'EXTERNAL_ROUTING_FAIL',
       source: 'EUCLIDEAN_ESTIMATION',
       estimatedDistanceKm: parseFloat(distanceEstimate.toFixed(2)),
-      estimatedTimeMin: Math.round(distanceEstimate * 2),
+      estimatedTimeMin: Math.round(distanceEstimate * 2), // Rough estimate: 30km/h average city driving
       path: [
         { lat: originLat, lng: originLng },
+        { lat: originLat, lng: destinationLng }, // L-shape bend
         { lat: destinationLat, lng: destinationLng }
       ],
-      message: 'Network error: Showing straight-line distance instead.'
+      message: 'Network error: Showing estimated L-shaped route.'
     };
   }
 };
