@@ -42,26 +42,40 @@ const getLeaderboard = async (timeframe) => {
   });
 
   // Fetch user details for the top ranked users
-  const userIds = rankings.map(r => r.userId);
+  const userIds = rankings.length > 0 ? rankings.map(r => r.userId) : [];
+  
   const users = await prisma.user.findMany({
-    where: { id: { in: userIds } },
+    where: rankings.length > 0 ? { id: { in: userIds } } : {},
+    orderBy: rankings.length === 0 ? { points: 'desc' } : undefined,
+    take: 20,
     select: {
       id: true,
       name: true,
-      reputationScore: true
+      points: true,
+      reputationScore: true,
+      streakCount: true,
+      _count: {
+        select: { locations: true }
+      }
     }
   });
 
-  // Merge user details with rankings
-  return rankings.map(rank => {
-    const user = users.find(u => u.id === rank.userId);
-    return {
-      userId: rank.userId,
-      name: user?.name,
-      reputationScore: user?.reputationScore,
-      pointsEarned: rank._sum.points || 0
-    };
-  }).sort((a, b) => b.pointsEarned - a.pointsEarned);
+  const finalUsers = rankings.length > 0 
+    ? rankings.map(rank => {
+        const u = users.find(user => user.id === rank.userId);
+        return { ...u, pointsEarned: rank._sum.points || 0 };
+      })
+    : users.map(u => ({ ...u, pointsEarned: u.points }));
+
+  return finalUsers.map((u, index) => ({
+    rank: index + 1,
+    userId: u.id,
+    name: u.name,
+    points: u.pointsEarned,
+    missions: u._count?.locations || 0,
+    streak: u.streakCount || 0,
+    badge: u.reputationScore > 500 ? "Elite Explorer" : u.reputationScore > 100 ? "Urban Scout" : "Newcomer"
+  }));
 };
 
 module.exports = {

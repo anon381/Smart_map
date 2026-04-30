@@ -28,9 +28,9 @@ const answerQuiz = async (req, res, next) => {
   try {
     const userId = req.user.userId;
     const { id } = req.params;
-    const { answer } = req.body;
+    const { answer, timeTaken } = req.body;
 
-    const result = await quizService.answerQuiz(id, userId, answer);
+    const result = await quizService.answerQuiz(id, userId, answer, timeTaken);
 
     res.status(201).json(result);
   } catch (error) {

@@ -9,12 +9,16 @@ const locationRoutes = require('./modules/location/location.routes');
 const verificationRoutes = require('./modules/verification/verification.routes');
 const leaderboardRoutes = require('./modules/leaderboard/leaderboard.routes');
 const gamificationRoutes = require('./modules/gamification/gamification.routes');
+const dashboardRoutes = require('./modules/dashboard/dashboard.routes');
 const missionRoutes = require('./modules/mission/mission.routes');
 const quizRoutes = require('./modules/quiz/quiz.routes');
 const navigationRoutes = require('./modules/navigation/navigation.routes');
 const uploadRoutes = require('./modules/upload/upload.routes');
 const searchRoutes = require('./modules/search/search.routes');
 const aiVerificationRoutes = require('./modules/ai_verification/ai_verification.routes');
+const shopRoutes = require('./modules/shop/shop.routes');
+const socialRoutes = require('./modules/social/social.routes');
+const userRoutes = require('./modules/user/user.routes');
 const path = require('path');
 
 const app = express();
@@ -41,6 +45,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/locations', locationRoutes);
 app.use('/api/locations', verificationRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
@@ -50,6 +55,9 @@ app.use('/api/quizzes', quizRoutes);
 app.use('/api/navigation', navigationRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/shop', shopRoutes);
+app.use('/api/social', socialRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api', aiVerificationRoutes);
 
 

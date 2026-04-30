@@ -1,15 +1,15 @@
 # dependencies
-node_modules
+node_modules/
 .pnp
 .pnp.js
 
 # testing
-coverage
+coverage/
 
 # next.js
 .next/
 out/
-build
+build/
 
 # misc
 .DS_Store
@@ -18,11 +18,21 @@ build
 # debug
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
+pnpm-debug.log*
 
 # local env files
-.env*.local
 .env
-node_modules/
-frontend/node_modules/
-frontend/.next/
+.env*.local
+.env.bak
+env.bak
+
+# Sub-project specific ignores
+backend/prisma/generated/
+backend/src/generated/
+
+frontend/dist/
+frontend/.cache/
+frontend/.vite/
+frontend/out/
+
+ml-engineering/__pycache__/

@@ -3,10 +3,7 @@ const leaderboardService = require('./leaderboard.service');
 const getLifetime = async (req, res, next) => {
   try {
     const leaderboard = await leaderboardService.getLeaderboard('lifetime');
-    res.json({
-      timeframe: 'lifetime',
-      leaderboard
-    });
+    res.json(leaderboard);
   } catch (error) {
     next(error);
   }
@@ -15,10 +12,7 @@ const getLifetime = async (req, res, next) => {
 const getDaily = async (req, res, next) => {
   try {
     const leaderboard = await leaderboardService.getLeaderboard('daily');
-    res.json({
-      timeframe: 'daily',
-      leaderboard
-    });
+    res.json(leaderboard);
   } catch (error) {
     next(error);
   }
@@ -27,10 +21,7 @@ const getDaily = async (req, res, next) => {
 const getWeekly = async (req, res, next) => {
   try {
     const leaderboard = await leaderboardService.getLeaderboard('weekly');
-    res.json({
-      timeframe: 'weekly',
-      leaderboard
-    });
+    res.json(leaderboard);
   } catch (error) {
     next(error);
   }
