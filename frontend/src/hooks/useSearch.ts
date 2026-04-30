@@ -4,6 +4,9 @@ const ML_ENGINE_URL = "http://localhost:5001";
 
 export type RagResult = {
   name: string;
+  lat: number;
+  lng: number;
+  id?: string;
   category?: string;
   distance?: number;
   trust_score?: number;

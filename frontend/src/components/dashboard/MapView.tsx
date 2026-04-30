@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -15,7 +15,7 @@ import { useSearch, type RagResponse } from "@/hooks/useSearch";
 import { useRoute, useSaveRoute } from "@/hooks/useRoute";
 import { useNavigationGuide } from "@/hooks/useNavigationGuide";
 import { useRobotPhysics } from "@/hooks/useRobotPhysics";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { apiRequest } from "@/lib/api";
 
 type NearbyPlace = {
@@ -157,9 +157,41 @@ export function MapView() {
 
   const effectivePos = useRobotPhysics(lat, lng, isSimulator);
 
+  // Combined logic for database and AI results
+  const dbNearbyPlaces = activeCategory 
+    ? locations.filter((place) => place.category === activeCategory) 
+    : locations;
+
+  const nearbyPlaces = useMemo(() => {
+    if (!ragData) return dbNearbyPlaces;
+    
+    const allRagResults = [
+      ...(ragData.sources?.osm ?? []),
+      ...(ragData.sources?.overpass ?? [])
+    ].map(r => ({
+      id: r.id || `${r.source || 'rag'}-${r.lat}-${r.lng}`,
+      name: r.name,
+      category: r.category || activeCategory || "location",
+      lat: r.lat,
+      lng: r.lng,
+      points: Math.round((r.trust_score || 0.5) * 100),
+      distance: r.distance || 0,
+      difficulty: "Medium" as const,
+      isHot: false,
+      statusText: r.source ? `Found via ${r.source}` : "Discovered via AI",
+      source: r.source
+    }));
+
+    const newRagResults = allRagResults.filter(
+      ragPlace => !dbNearbyPlaces.some(dbPlace => dbPlace.name.toLowerCase() === ragPlace.name.toLowerCase())
+    );
+
+    return [...dbNearbyPlaces, ...newRagResults].sort((a, b) => a.distance - b.distance);
+  }, [dbNearbyPlaces, ragData, activeCategory]);
+
   // Navigation Target Logic
   const activeDest = selectedTargetId 
-    ? locations.find(l => l.id === selectedTargetId) 
+    ? nearbyPlaces.find(l => l.id === selectedTargetId) 
     : selectedSearchPin;
   
   const destCoords = activeDest ? { lat: activeDest.lat, lng: activeDest.lng } : null;
@@ -236,14 +268,36 @@ export function MapView() {
     }
   }, [ragData]);
 
-  const nearbyPlaces = activeCategory 
-    ? locations.filter((place) => place.category === activeCategory) 
-    : locations;
+  // Auto-trigger RAG search when a category is selected
+  useEffect(() => {
+    if (activeCategory) {
+      const categoryLabel = categories.find((c) => c.id === activeCategory)?.label || activeCategory;
+      const autoQuery = `Find ${categoryLabel} nearby`;
+      setQuery(autoQuery);
+
+      setRagData(null);
+      searchMutation.mutate(
+        { query: autoQuery, userLat: effectivePos.lat || 8.9806, userLng: effectivePos.lng || 38.7578 },
+        { 
+          onSuccess: (data) => {
+            setRagData(data);
+            setSelectedSearchPin(null);
+          },
+          onError: (err: any) => {
+            console.error("Auto search failed:", err);
+          }
+        }
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeCategory]);
+
+
 
   const nearbyLabel = cat?.label ?? "All Categories";
   
   const target = selectedTargetId 
-    ? locations.find(p => p.id === selectedTargetId) || nearbyPlaces[0] || null
+    ? nearbyPlaces.find(p => p.id === selectedTargetId) || nearbyPlaces[0] || null
     : nearbyPlaces[0] || null;
 
   useEffect(() => {
@@ -407,57 +461,12 @@ export function MapView() {
                   ...(ragData.sources?.database ?? []),
                   ...(ragData.sources?.osm ?? []),
                   ...(ragData.sources?.overpass ?? [])
-                ].slice(0, 5);
+                ];
                 return allResults.length > 0 ? (
-                  <div className="border-t border-border/30 px-4 pb-3 pt-2">
-                    <p className="mb-2 text-[9px] uppercase tracking-widest text-muted-foreground">
-                      Top Results · {ragData.total_results} found
+                  <div className="border-t border-border/30 px-4 py-2 text-center">
+                    <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
+                      {allResults.length} locations added to 'Nearby Results' list
                     </p>
-                    <div className="space-y-2">
-                      {allResults.map((r, i) => (
-                        <button 
-                          key={i} 
-                          onClick={() => {
-                            if (r.lat && r.lng) {
-                              setFlyToPos([r.lat, r.lng]);
-                              setFollow(false);
-                              if (r.source === 'database') {
-                                setSelectedTargetId(r.id);
-                                setSelectedSearchPin(null);
-                              } else {
-                                setSelectedSearchPin(r);
-                                setSelectedTargetId(null);
-                              }
-                            }
-                          }}
-                          className="flex w-full items-center justify-between gap-3 rounded-xl border border-border/30 bg-white/5 px-3 py-2 text-left transition-all hover:border-primary/50 hover:bg-white/10 active:scale-[0.98]"
-                        >
-                          <div className="min-w-0">
-                            <p className="truncate text-xs font-medium text-foreground">{r.name}</p>
-                            <div className="flex items-center gap-1.5 mt-0.5">
-                              <span className="text-[9px] uppercase text-muted-foreground">{r.category || 'location'}</span>
-                              {r.source && (
-                                <span className="flex items-center gap-0.5 text-[9px] text-primary-glow">
-                                  <Globe className="h-2.5 w-2.5" />{r.source}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex shrink-0 flex-col items-end gap-1">
-                            {r.distance != null && (
-                              <span className="text-[9px] text-muted-foreground">
-                                {r.distance < 1 ? `${Math.round(r.distance * 1000)}m` : `${r.distance.toFixed(1)}km`}
-                              </span>
-                            )}
-                            {r.trust_score != null && (
-                              <span className="text-[9px] font-medium" style={{ color: r.trust_score > 0.7 ? '#22c55e' : '#f59e0b' }}>
-                                {Math.round(r.trust_score * 100)}% trust
-                              </span>
-                            )}
-                          </div>
-                        </button>
-                      ))}
-                    </div>
                   </div>
                 ) : null;
               })()}
@@ -585,7 +594,7 @@ export function MapView() {
           </Marker>
         )}
 
-        {locations
+        {nearbyPlaces
           .filter(p => p.lat !== undefined && p.lng !== undefined)
           .map((p) => (
           <Marker 
