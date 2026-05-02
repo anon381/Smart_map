@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import gsap from "gsap";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDashboard } from "./DashboardContext";
+import { useMissions } from "@/hooks/useMissions";
 import {
   X,
   Trophy,
