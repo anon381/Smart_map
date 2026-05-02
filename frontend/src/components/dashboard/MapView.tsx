@@ -1,7 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline, useMapEvents } from "react-leaflet";
-import L from "leaflet";
-import "leaflet/dist/leaflet.css";
+import { useEffect, useRef, useState, Suspense } from "react";
 import gsap from "gsap";
 import { useNavigate } from "@tanstack/react-router";
 import { useDashboard } from "./DashboardContext";
@@ -40,56 +37,8 @@ const categoryPinStyles: Record<string, { from: string; to: string; glow: string
   game: { from: "#a855f7", to: "#06b6d4", glow: "rgba(168,85,247,.7)" },
 };
 
-function createPinIcon(category: string) {
-  const style = categoryPinStyles[category] ?? categoryPinStyles.transport;
-  return new L.DivIcon({
-    className: "smartmap-pin",
-    html: `<div style="
-      width:30px;height:30px;border-radius:9999px;
-      background:linear-gradient(135deg,${style.from},${style.to});
-      border:2px solid rgba(0,0,0,.85);
-      box-shadow:0 0 16px ${style.glow};
-      position:relative;
-    ">
-      <div style="position:absolute;inset:7px;border-radius:9999px;background:rgba(255,255,255,.18);"></div>
-    </div>`,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-  });
-}
-
-const userLocationIcon = new L.DivIcon({
-  className: "smartmap-user-marker",
-  html: `
-    <div style="position:relative;width:60px;height:60px;display:flex;align-items:center;justify-content:center;">
-      {/* Outer Pulse */}
-      <div style="position:absolute;inset:0;border-radius:9999px;
-        background:radial-gradient(circle, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0) 70%);
-        animation:pulse 2s ease-out infinite;"></div>
-      
-      {/* Red Location Pin */}
-      <div style="font-size:45px;filter:drop-shadow(0 0 10px #ef4444);z-index:10;">📍</div>
-      
-      {/* Black Directional Arrow */}
-      <div id="user-heading-arrow" style="
-        position:absolute;
-        top:-15px;
-        font-size:35px;
-        color:black;
-        filter:drop-shadow(0 0 4px white);
-        transition: transform 0.3s ease;
-      ">⬆️</div>
-    </div>
-    <style>
-      @keyframes pulse {
-        0% { transform: scale(0.6); opacity: 1; }
-        100% { transform: scale(1.8); opacity: 0; }
-      }
-    </style>
-  `,
-  iconSize: [60, 60],
-  iconAnchor: [30, 30],
-});
+// Leaflet and react-leaflet are loaded dynamically on the client to avoid
+// server-side "window is not defined" errors during SSR.
 
 const samplePoints: NearbyPlace[] = [
   {
@@ -418,32 +367,7 @@ const samplePoints: NearbyPlace[] = [
   },
 ];
 
-function FollowPlayer({ position, follow }: { position: [number, number] | null; follow: boolean }) {
-  const map = useMap();
 
-  useEffect(() => {
-    if (follow && position) map.setView(position, map.getZoom() < 15 ? 16 : map.getZoom(), { animate: true });
-  }, [position, follow, map]);
-
-  return null;
-}
-
-function MapEvents({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
-  useMapEvents({
-    click(e) {
-      onMapClick(e.latlng.lat, e.latlng.lng);
-    },
-  });
-  return null;
-}
-
-function FlyToLocation({ position }: { position: [number, number] | null }) {
-  const map = useMap();
-  useEffect(() => {
-    if (position) map.flyTo(position, 17, { duration: 1.5 });
-  }, [position, map]);
-  return null;
-}
 
 function Key({ cap }: { cap: string }) {
   return (
@@ -479,6 +403,28 @@ export function MapView() {
   const [addCoords, setAddCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   const effectivePos = useRobotPhysics(lat, lng, isSimulator);
+
+  const [leafletModule, setLeafletModule] = useState<any | null>(null);
+  const [rlModule, setRlModule] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let mounted = true;
+    Promise.all([
+      import("leaflet"),
+      import("react-leaflet"),
+      import("leaflet/dist/leaflet.css"),
+    ])
+      .then(([leafletMod, rlMod]) => {
+        if (!mounted) return;
+        setLeafletModule(leafletMod);
+        setRlModule(rlMod);
+      })
+      .catch((err) => console.error("Leaflet load failed", err));
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Navigation Target Logic
   const activeDest = selectedTargetId 
@@ -565,6 +511,34 @@ export function MapView() {
 
   const nearbyLabel = cat?.label ?? "All Categories";
   
+  const defaultCity = "Addis Ababa";
+
+  function pickPlaceField(place: any, keys: string[]) {
+    for (const k of keys) {
+      if (place[k]) return place[k];
+    }
+    return null;
+  }
+
+  function makeTikTokSearchUrl(place: any) {
+    const parts: string[] = [];
+    if (place.name) parts.push(place.name);
+
+    // include human-friendly category when a discovery category is active
+    const categoryLabel = categories.find((c) => c.id === place.category)?.label || place.category;
+    if (activeCategory && categoryLabel) parts.push(categoryLabel);
+
+    // area / neighborhood / district / locality fallback keys
+    const area = pickPlaceField(place, ["area", "neighborhood", "district", "locality", "region"]);
+    if (area) parts.push(area);
+
+    const city = pickPlaceField(place, ["city", "town", "municipality"]) || defaultCity;
+    if (city) parts.push(city);
+
+    const query = parts.filter(Boolean).join(" ");
+    return `https://www.tiktok.com/search?q=${encodeURIComponent(query)}`;
+  }
+  
   const target = selectedTargetId 
     ? locations.find(p => p.id === selectedTargetId) || nearbyPlaces[0] || null
     : nearbyPlaces[0] || null;
@@ -605,6 +579,97 @@ export function MapView() {
       resultsScrollRef.current.scrollTop = 0;
     }
   }, [activeCategory, nearbyPlaces]);
+
+  // If Leaflet/react-leaflet haven't loaded yet (or running on server),
+  // render a lightweight placeholder to avoid SSR errors.
+  if (!leafletModule || !rlModule) {
+    return (
+      <div className="relative h-[calc(100vh-56px)] w-full lg:h-screen overflow-hidden bg-black/80 flex items-center justify-center">
+        <div className="text-center text-sm text-muted-foreground">Map loading...</div>
+      </div>
+    );
+  }
+
+  // Modules are available — create local aliases for JSX usage.
+  const L = leafletModule.default ?? leafletModule;
+  const MapContainer = rlModule.MapContainer || rlModule.MapContainer;
+  const TileLayer = rlModule.TileLayer || rlModule.TileLayer;
+  const Marker = rlModule.Marker || rlModule.Marker;
+  const Popup = rlModule.Popup || rlModule.Popup;
+  const Polyline = rlModule.Polyline || rlModule.Polyline;
+  const useMapHook = rlModule.useMap;
+  const useMapEventsHook = rlModule.useMapEvents;
+
+  function createPinIcon(category: string) {
+    const style = categoryPinStyles[category] ?? categoryPinStyles.transport;
+    return new L.DivIcon({
+      className: "smartmap-pin",
+      html: `<div style="
+        width:30px;height:30px;border-radius:9999px;
+        background:linear-gradient(135deg,${style.from},${style.to});
+        border:2px solid rgba(0,0,0,.85);
+        box-shadow:0 0 16px ${style.glow};
+        position:relative;
+      ">
+        <div style="position:absolute;inset:7px;border-radius:9999px;background:rgba(255,255,255,.18);"></div>
+      </div>`,
+      iconSize: [30, 30],
+      iconAnchor: [15, 15],
+    });
+  }
+
+  const userLocationIcon = new L.DivIcon({
+    className: "smartmap-user-marker",
+    html: `
+      <div style="position:relative;width:60px;height:60px;display:flex;align-items:center;justify-content:center;">
+        <div style="position:absolute;inset:0;border-radius:9999px;
+          background:radial-gradient(circle, rgba(239, 68, 68, 0.4) 0%, rgba(239, 68, 68, 0) 70%);
+          animation:pulse 2s ease-out infinite;"></div>
+        <div style="font-size:45px;filter:drop-shadow(0 0 10px #ef4444);z-index:10;">📍</div>
+        <div id="user-heading-arrow" style="
+          position:absolute;
+          top:-15px;
+          font-size:35px;
+          color:black;
+          filter:drop-shadow(0 0 4px white);
+          transition: transform 0.3s ease;
+        ">⬆️</div>
+      </div>
+      <style>
+        @keyframes pulse {
+          0% { transform: scale(0.6); opacity: 1; }
+          100% { transform: scale(1.8); opacity: 0; }
+        }
+      </style>
+    `,
+    iconSize: [60, 60],
+    iconAnchor: [30, 30],
+  });
+
+  function FollowPlayer({ position, follow }: { position: [number, number] | null; follow: boolean }) {
+    const map = useMapHook();
+    useEffect(() => {
+      if (follow && position) map.setView(position, map.getZoom() < 15 ? 16 : map.getZoom(), { animate: true });
+    }, [position, follow, map]);
+    return null;
+  }
+
+  function MapEvents({ onMapClick }: { onMapClick: (lat: number, lng: number) => void }) {
+    useMapEventsHook({
+      click(e: any) {
+        onMapClick(e.latlng.lat, e.latlng.lng);
+      },
+    });
+    return null;
+  }
+
+  function FlyToLocation({ position }: { position: [number, number] | null }) {
+    const map = useMapHook();
+    useEffect(() => {
+      if (position) map.flyTo(position, 17, { duration: 1.5 });
+    }, [position, map]);
+    return null;
+  }
 
   return (
     <div className="relative h-[calc(100vh-56px)] w-full lg:h-screen overflow-hidden">
@@ -1029,6 +1094,14 @@ export function MapView() {
                   </div>
                   <p className="mt-2 text-[11px] text-muted-foreground sm:text-xs">{(place as any).note}</p>
                   <div className="mt-2 text-[10px] text-muted-foreground">{(place as any).status}</div>
+                  <a
+                    href={makeTikTokSearchUrl(place)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gradient-primary px-3 py-2 text-xs font-semibold text-primary-foreground shadow-glow"
+                  >
+                    View on TikTok
+                  </a>
                 </div>
               );
             })}
